@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #2D2D2D;
+  color: #9A9A9A;
+  font-family: 'Poppins', sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Ticker overflow hidden */
+.ticker-wrapper {
+  overflow: hidden;
+  width: 100%;
+}

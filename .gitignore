@@ -1,0 +1,5 @@
+node_modules/
+.next/
+.env.local
+FORGE_BRIEF.md
+brand-deck.pdf
