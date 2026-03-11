@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
 
   // Validate required fields
-  const required = ['name', 'email', 'item_name', 'description', 'condition', 'location', 'quantity', 'product_category']
+  const required = ['name', 'email', 'company_name', 'contact_name', 'phone', 'item_name', 'description', 'condition', 'location', 'quantity', 'product_category']
   for (const field of required) {
     if (!body[field]) {
       return NextResponse.json({ error: `Missing field: ${field}` }, { status: 400 })
@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
   const { error } = await supabase.from('form_submissions').insert({
     name: body.name,
     email: body.email,
+    company_name: body.company_name,
+    contact_name: body.contact_name,
+    phone: body.phone,
+    website: body.website || null,
     item_name: body.item_name,
     description: body.description,
     condition: body.condition,

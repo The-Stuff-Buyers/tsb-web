@@ -22,6 +22,10 @@ export default function IntakeForm() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    company_name: "",
+    contact_name: "",
+    phone: "",
+    website: "",
     item_name: "",
     description: "",
     condition: "",
@@ -109,6 +113,63 @@ export default function IntakeForm() {
             value={form.email}
             onChange={handleChange}
             placeholder="you@company.com"
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label htmlFor="company_name" className={labelClass}>Company Name *</label>
+          <input
+            id="company_name"
+            name="company_name"
+            type="text"
+            required
+            value={form.company_name}
+            onChange={handleChange}
+            placeholder="Acme Corp"
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="contact_name" className={labelClass}>Your Name *</label>
+          <input
+            id="contact_name"
+            name="contact_name"
+            type="text"
+            required
+            value={form.contact_name}
+            onChange={handleChange}
+            placeholder="Jane Smith"
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label htmlFor="phone" className={labelClass}>Phone Number *</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="(555) 000-0000"
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="website" className={labelClass}>Website (optional)</label>
+          <input
+            id="website"
+            name="website"
+            type="url"
+            value={form.website}
+            onChange={handleChange}
+            placeholder="https://example.com"
             className={inputClass}
           />
         </div>
