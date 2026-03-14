@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { validateSubmission, normalizeWebsite, normalizeUpc } from '@/lib/validation'
+import { validateSubmission, validateBatchSubmission, normalizeWebsite, normalizeUpc } from '@/lib/validation'
 
 // ── In-memory rate limiter (no external deps) ──────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -61,6 +61,15 @@ export async function POST(req: NextRequest) {
       message: "Received. We'll be in touch within 24–48 hours.",
     })
   }
+
+  // 4. Detect multi-item vs single-item path
+  const isMultiItem = Array.isArray(body.items) && (body.items as unknown[]).length > 0
+
+  if (isMultiItem) {
+    return handleMultiItem(body)
+  }
+
+  // ── Single-item path (unchanged from v1) ──────────────────────────
 
   // 4. Validate using shared contract
   const result = validateSubmission(body)
@@ -157,5 +166,118 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     message: "Received. We'll be in touch within 24–48 hours.",
+  })
+}
+
+// ── Multi-item batch path ─────────────────────────────────────────
+
+async function handleMultiItem(body: Record<string, unknown>): Promise<NextResponse> {
+  const items = body.items as Array<Record<string, unknown>>
+
+  const contactFields: Record<string, unknown> = {
+    contact_name: body.contact_name,
+    email: body.email,
+    phone: body.phone,
+    company_name: body.company_name,
+    website: body.website,
+    industry_type: body.industry_type,
+  }
+
+  // Validate contact fields + all items
+  const validation = validateBatchSubmission(contactFields, items)
+
+  if (!validation.valid) {
+    const itemErrors: Record<number, Record<string, string>> = {}
+
+    if (validation.contactErrors.length > 0) {
+      itemErrors[0] = itemErrors[0] || {}
+      for (const err of validation.contactErrors) {
+        itemErrors[0][err.field] = err.message
+      }
+    }
+
+    for (const [idxStr, errs] of Object.entries(validation.itemErrors)) {
+      const idx = parseInt(idxStr)
+      itemErrors[idx] = itemErrors[idx] || {}
+      for (const err of errs) {
+        itemErrors[idx][err.field] = err.message
+      }
+    }
+
+    return NextResponse.json(
+      {
+        error: 'Some items have validation errors.',
+        itemErrors,
+      },
+      { status: 400 }
+    )
+  }
+
+  // Generate batch group ID
+  const submission_group_id = crypto.randomUUID()
+  const supabase = getSupabase()
+  const website = body.website ? normalizeWebsite(String(body.website)) : null
+
+  let items_accepted = 0
+  let items_duplicate = 0
+
+  for (const item of items) {
+    // Dedup check per item
+    const { data: existing } = await supabase
+      .from('form_submissions')
+      .select('id')
+      .eq('email', body.email as string)
+      .eq('item_name', item.item_name as string)
+      .eq('company_name', (body.company_name as string) ?? '')
+      .gte('submitted_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+      .limit(1)
+
+    if (existing && existing.length > 0) {
+      items_duplicate++
+      continue
+    }
+
+    const upc = item.no_upc
+      ? 'No UPC'
+      : item.upc
+      ? normalizeUpc(String(item.upc))
+      : null
+    const quantity = parseInt(String(item.quantity), 10)
+
+    const insertPayload = {
+      contact_name: body.contact_name || null,
+      company_name: body.company_name || null,
+      email: body.email,
+      phone: body.phone || null,
+      website,
+      industry_type: body.industry_type || null,
+      item_name: item.item_name,
+      description: item.description || null,
+      condition: item.condition,
+      location: item.location,
+      upc,
+      quantity,
+      product_category: item.product_category,
+      source: 'web_form',
+      submission_group_id,
+      raw_payload: body,
+    }
+
+    const { error: insertError } = await supabase
+      .from('form_submissions')
+      .insert(insertPayload as never)
+
+    if (insertError) {
+      console.error('Supabase batch insert error:', insertError)
+    } else {
+      items_accepted++
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: "Received. We'll be in touch within 24–48 hours.",
+    items_accepted,
+    items_duplicate,
   })
 }

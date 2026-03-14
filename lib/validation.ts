@@ -199,3 +199,70 @@ export function validateSubmission(
     warnings,
   };
 }
+
+/**
+ * Validate a multi-item batch submission.
+ * Validates shared contact fields once, then each item independently.
+ * Returns errors keyed by item index.
+ */
+export function validateBatchSubmission(
+  contactFields: Record<string, unknown>,
+  items: Array<Record<string, unknown>>
+): {
+  valid: boolean;
+  contactErrors: FieldError[];
+  itemErrors: Record<number, FieldError[]>;
+  warnings: Record<number, FieldError[]>;
+} {
+  const contactErrors: FieldError[] = [];
+
+  const email = String(contactFields.email || '').trim();
+  if (!email) {
+    contactErrors.push({ field: 'email', message: 'Please enter a valid email address.' });
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    contactErrors.push({ field: 'email', message: 'Please enter a valid email address.' });
+  }
+
+  const contactName = String(contactFields.contact_name || '').trim();
+  if (!contactName || contactName.length < 2) {
+    contactErrors.push({ field: 'contact_name', message: 'Please enter your name.' });
+  } else if (contactName.length > MAX_LENGTHS.contact_name) {
+    contactErrors.push({ field: 'contact_name', message: `Name is too long (max ${MAX_LENGTHS.contact_name} characters).` });
+  }
+
+  const phoneRaw = String(contactFields.phone || '').trim();
+  if (phoneRaw) {
+    const phoneDigits = normalizePhone(phoneRaw);
+    const isIntl = phoneRaw.startsWith('+');
+    if (isIntl) {
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        contactErrors.push({ field: 'phone', message: 'Please enter a valid phone number (e.g., 555-123-4567).' });
+      }
+    } else {
+      if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+        contactErrors.push({ field: 'phone', message: 'Please enter a valid phone number (e.g., 555-123-4567).' });
+      }
+    }
+  }
+
+  const companyName = String(contactFields.company_name || '').trim();
+  if (companyName && companyName.length > MAX_LENGTHS.company_name) {
+    contactErrors.push({ field: 'company_name', message: `Company name is too long (max ${MAX_LENGTHS.company_name} characters).` });
+  }
+
+  const itemErrors: Record<number, FieldError[]> = {};
+  const warnings: Record<number, FieldError[]> = {};
+
+  for (let i = 0; i < items.length; i++) {
+    const merged = { ...contactFields, ...items[i] };
+    const result = validateSubmission(merged);
+    const itemOnlyErrors = result.errors.filter(
+      e => !['email', 'contact_name', 'phone', 'company_name', 'website', 'industry_type'].includes(e.field)
+    );
+    if (itemOnlyErrors.length > 0) itemErrors[i] = itemOnlyErrors;
+    if (result.warnings.length > 0) warnings[i] = result.warnings;
+  }
+
+  const valid = contactErrors.length === 0 && Object.keys(itemErrors).length === 0;
+  return { valid, contactErrors, itemErrors, warnings };
+}
