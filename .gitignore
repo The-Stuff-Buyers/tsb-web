@@ -4,3 +4,4 @@ node_modules/
 FORGE_BRIEF.md
 brand-deck.pdf
 .vercel
+deploy.sh
