@@ -602,12 +602,11 @@ export default function IntakeForm() {
                 <span>{i + 1}</span>
                 {isActivated && i > 0 && (
                   <span
-                    role="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeactivateTab(i);
                     }}
-                    className="text-brand-gray/50 hover:text-brand-error text-xs ml-0.5 leading-none"
+                    className="text-brand-gray/50 hover:text-brand-error text-xs ml-0.5 leading-none cursor-pointer"
                     aria-label={`Remove item ${i + 1}`}
                   >
                     ✕
