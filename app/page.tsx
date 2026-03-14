@@ -123,7 +123,7 @@ export default function Home() {
           </p>
           <p className="text-brand-gray text-sm mb-1">(314) 358-5293</p>
           <p className="text-brand-gray text-sm mb-6">
-            123 E Jackson St. Suite 205, Burnet, Texas 78611
+            448 Cobblestone Way, Mt Juliet, TN 37122
           </p>
           <p className="text-brand-gray text-sm">
             &copy; 2026 The Stuff Buyers LLC. All rights reserved.

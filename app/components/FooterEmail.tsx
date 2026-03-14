@@ -6,11 +6,11 @@ export default function FooterEmail() {
       href="#"
       onClick={(e) => {
         e.preventDefault();
-        window.location.href = 'mailto:' + 'blake' + '@' + 'thestuffbuyers.com';
+        window.location.href = 'mailto:' + 'quotes' + '@' + 'thestuffbuyers.com';
       }}
       className="hover:text-brand-gold transition-colors"
     >
-      blake@thestuffbuyers.com
+      quotes@thestuffbuyers.com
     </a>
   );
 }
