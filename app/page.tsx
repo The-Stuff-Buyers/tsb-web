@@ -1,5 +1,4 @@
 import IntakeForm from "./components/IntakeForm";
-import FooterEmail from "./components/FooterEmail";
 
 const HOW_IT_WORKS = [
   {
@@ -21,7 +20,7 @@ const HOW_IT_WORKS = [
 
 export default function Home() {
   return (
-    <main className="bg-brand-bg min-h-screen">
+    <div className="bg-brand-bg min-h-screen">
       {/* Skip to content */}
       <a
         href="#intake-form"
@@ -114,22 +113,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-brand-gold px-6 md:px-12 lg:px-24 py-10">
-        <div className="max-w-5xl">
-          <p className="text-brand-gray text-sm font-medium mb-3">The Stuff Buyers LLC</p>
-          <p className="text-brand-gray text-sm mb-1">
-            <FooterEmail />
-          </p>
-          <p className="text-brand-gray text-sm mb-1">(314) 358-5293</p>
-          <p className="text-brand-gray text-sm mb-6">
-            448 Cobblestone Way, Mt Juliet, TN 37122
-          </p>
-          <p className="text-brand-gray text-sm">
-            &copy; 2026 The Stuff Buyers LLC. All rights reserved.
-          </p>
-        </div>
-      </footer>
-    </main>
+    </div>
   );
 }

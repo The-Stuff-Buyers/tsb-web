@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { PWARegistration } from "./components/PWARegistration";
+import HamburgerNav from "./components/HamburgerNav";
+import Footer from "./components/Footer";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -35,7 +37,9 @@ export default function RootLayout({
       </head>
       <body className="font-poppins antialiased bg-brand-bg text-brand-gray">
         <PWARegistration />
-        {children}
+        <HamburgerNav />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );
