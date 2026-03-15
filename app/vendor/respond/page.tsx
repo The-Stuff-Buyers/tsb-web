@@ -1,0 +1,876 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface DealData {
+  deal_id: string
+  item_name: string
+  condition: string
+  quantity: number
+  location: string
+  category: string
+  description: string
+  deadline: string
+  submitted_at: string
+  vendor: {
+    company: string
+    contact_name: string
+    email: string
+    phone: string
+  }
+}
+
+type PageState = 'loading' | 'form' | 'submitted' | 'already_submitted' | 'error'
+
+// ── USD Formatting ────────────────────────────────────────────────────────────
+
+function formatUSD(value: string): string {
+  const num = parseFloat(value.replace(/[^0-9.]/g, ''))
+  if (isNaN(num)) return value
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(num)
+}
+
+// ── Offer types ───────────────────────────────────────────────────────────────
+
+const OFFER_TYPES = [
+  { value: '', label: '— Select offer type —' },
+  { value: 'cash_purchase', label: 'Cash Purchase (outright buy)' },
+  { value: 'consignment_60_40', label: 'Consignment — 60/40 (seller gets 60%)' },
+  { value: 'consignment_70_30', label: 'Consignment — 70/30 (seller gets 70%)' },
+  { value: 'consignment_80_20', label: 'Consignment — 80/20 (seller gets 80%)' },
+  { value: 'net_30', label: 'Net 30' },
+  { value: 'net_60', label: 'Net 60' },
+  { value: 'other', label: 'Other (specify in notes)' },
+]
+
+const PICKUP_OPTIONS = [
+  { value: '', label: '— Select —' },
+  { value: 'buyer_arranges', label: 'We Arrange & Pay Pickup' },
+  { value: 'seller_delivers', label: 'Seller Delivers to Our Location' },
+  { value: 'split', label: 'Split / Negotiable' },
+  { value: 'na', label: 'N/A — No Offer' },
+]
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export default function VendorRespondPage() {
+  const searchParams = useSearchParams()
+  const dealParam = searchParams.get('deal') || ''
+  const tokenParam = searchParams.get('token') || ''
+
+  const [pageState, setPageState] = useState<PageState>('loading')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [deal, setDeal] = useState<DealData | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+
+  // Form fields
+  const [offerType, setOfferType] = useState('')
+  const [quantityOffered, setQuantityOffered] = useState('')
+  const [cashPerUnit, setCashPerUnit] = useState('')
+  const [cashTotal, setCashTotal] = useState('')
+  const [consignmentReturn, setConsignmentReturn] = useState('')
+  const [pickupLogistics, setPickupLogistics] = useState('')
+  const [pickupDate, setPickupDate] = useState('')
+  const [notes, setNotes] = useState('')
+
+  // Quote valid through: calculated on submit as submittedAt + 72h
+  const quoteValidThrough = deal?.submitted_at
+    ? (() => {
+        const exp = new Date(new Date(deal.submitted_at).getTime() + 72 * 60 * 60 * 1000)
+        return exp.toLocaleDateString('en-US', {
+          weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+          timeZone: 'America/Chicago',
+        }) + ' at ' + exp.toLocaleTimeString('en-US', {
+          hour: 'numeric', minute: '2-digit', hour12: true,
+          timeZone: 'America/Chicago',
+        }) + ' CT'
+      })()
+    : 'Valid through: 72 hours from submission'
+
+  const isConsignment = offerType.startsWith('consignment')
+
+  // Auto-calc total from per unit × qty
+  useEffect(() => {
+    const perUnit = parseFloat(cashPerUnit.replace(/[^0-9.]/g, ''))
+    const qty = parseInt(quantityOffered, 10)
+    if (!isNaN(perUnit) && !isNaN(qty) && perUnit > 0 && qty > 0) {
+      setCashTotal(formatUSD(String(perUnit * qty)))
+    }
+  }, [cashPerUnit, quantityOffered])
+
+  // Fetch deal data
+  useEffect(() => {
+    if (!dealParam || !tokenParam) {
+      setErrorMsg('This link is invalid or has expired.')
+      setPageState('error')
+      return
+    }
+
+    fetch(`/api/vendor/respond/deal?deal=${encodeURIComponent(dealParam)}&token=${encodeURIComponent(tokenParam)}`)
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) {
+          if (data.error === 'already_submitted') {
+            setPageState('already_submitted')
+          } else {
+            setErrorMsg(data.error || data.message || 'This link is invalid or has expired.')
+            setPageState('error')
+          }
+          return
+        }
+        setDeal(data)
+        setQuantityOffered(String(data.quantity))
+        setPageState('form')
+      })
+      .catch(() => {
+        setErrorMsg('Unable to load deal data. Please try again.')
+        setPageState('error')
+      })
+  }, [dealParam, tokenParam])
+
+  const handleSubmit = useCallback(async () => {
+    if (!deal) return
+    setSubmitError('')
+
+    // Validation
+    if (!offerType) { setSubmitError('Please select an offer type.'); return }
+    if (!quantityOffered || parseInt(quantityOffered, 10) < 1) { setSubmitError('Please enter a valid quantity.'); return }
+    if (!notes.trim()) { setSubmitError('Please provide quote notes or a decline reason.'); return }
+
+    setSubmitting(true)
+
+    try {
+      const res = await fetch('/api/vendor/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deal_id: deal.deal_id,
+          token: tokenParam,
+          offer_type: offerType,
+          quantity_offered: parseInt(quantityOffered, 10),
+          cash_offer_per_unit: cashPerUnit || undefined,
+          cash_offer_total: cashTotal || undefined,
+          consignment_return: consignmentReturn || undefined,
+          pickup_logistics: pickupLogistics || undefined,
+          pickup_date: pickupDate || undefined,
+          notes,
+          vendor_company: deal.vendor.company,
+          vendor_contact: deal.vendor.contact_name,
+          vendor_email: deal.vendor.email,
+          vendor_phone: deal.vendor.phone,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setSubmitError(data.error || 'Submission failed. Please try again.')
+        setSubmitting(false)
+        return
+      }
+
+      setPageState('submitted')
+    } catch {
+      setSubmitError('Network error. Please check your connection and try again.')
+      setSubmitting(false)
+    }
+  }, [deal, tokenParam, offerType, quantityOffered, cashPerUnit, cashTotal, consignmentReturn, pickupLogistics, pickupDate, notes])
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TSB Vendor Quote Response</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+        <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      </head>
+      <body>
+        <div className="page-wrapper">
+          {pageState === 'loading' && <LoadingState />}
+          {pageState === 'error' && <ErrorState message={errorMsg} />}
+          {pageState === 'already_submitted' && <AlreadySubmittedState dealId={dealParam} />}
+          {pageState === 'submitted' && <ConfirmationState dealId={deal?.deal_id || dealParam} />}
+          {pageState === 'form' && deal && (
+            <div className="form-container">
+              {/* Header */}
+              <div className="form-header">
+                <div className="header-row">
+                  <div>
+                    <div className="wordmark">THE STUFF BUYERS</div>
+                    <div className="tagline">Inventory Recovery · Partner Network</div>
+                  </div>
+                  <div className="deal-badge">
+                    <div className="deal-id-display">{deal.deal_id}</div>
+                    <div className="deal-date">VENDOR QUOTE RESPONSE</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Banner */}
+              <div className="banner">
+                <span>◆ QUOTE RESPONSE FORM · {deal.vendor.company}</span>
+              </div>
+
+              {/* Deal Summary Card */}
+              <div className="section">
+                <div className="section-label">DEAL SUMMARY</div>
+                <div className="item-card">
+                  <div className="item-name">{deal.item_name}</div>
+                  <div className="item-grid">
+                    <div className="grid-cell">
+                      <span className="field-key">Condition</span>
+                      <span className="field-val">{deal.condition}</span>
+                    </div>
+                    <div className="grid-cell">
+                      <span className="field-key">Category</span>
+                      <span className="field-val">{deal.category}</span>
+                    </div>
+                    <div className="grid-cell">
+                      <span className="field-key">Quantity</span>
+                      <span className="field-val highlight">{deal.quantity} units</span>
+                    </div>
+                    <div className="grid-cell">
+                      <span className="field-key">Location</span>
+                      <span className="field-val">{deal.location}</span>
+                    </div>
+                  </div>
+                  {deal.description && (
+                    <div className="description-block">
+                      <span className="field-key">Description</span>
+                      <span className="field-val desc">{deal.description}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Deadline Bar */}
+              <div className="deadline-bar">
+                <span className="dl-label">Quote Response Deadline</span>
+                <span className="dl-value">{deal.deadline}</span>
+              </div>
+
+              {/* Quote Form */}
+              <div className="section">
+                <div className="section-label">YOUR QUOTE</div>
+
+                {submitError && (
+                  <div className="error-banner">{submitError}</div>
+                )}
+
+                {/* Offer Type */}
+                <div className="form-row">
+                  <label className="form-label">Offer Type *</label>
+                  <select
+                    className="form-control"
+                    value={offerType}
+                    onChange={(e) => setOfferType(e.target.value)}
+                  >
+                    {OFFER_TYPES.map((o) => (
+                      <option key={o.value} value={o.value} disabled={o.value === ''}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Quantity */}
+                <div className="form-row-grid">
+                  <div className="form-row">
+                    <label className="form-label">Quantity You Are Offering On *</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={quantityOffered}
+                      onChange={(e) => setQuantityOffered(e.target.value)}
+                      min={0}
+                      placeholder="e.g. 300"
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label className="form-label">Quantity Requested (reference)</label>
+                    <input
+                      type="number"
+                      className="form-control readonly"
+                      value={deal.quantity}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* Cash Offers */}
+                <div className="form-row-grid">
+                  <div className="form-row">
+                    <label className="form-label">Cash Offer Per Unit</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={cashPerUnit}
+                      onChange={(e) => setCashPerUnit(e.target.value)}
+                      onBlur={() => cashPerUnit && setCashPerUnit(formatUSD(cashPerUnit))}
+                      placeholder="e.g. $4.75"
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label className="form-label">Cash Offer Total</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={cashTotal}
+                      onChange={(e) => setCashTotal(e.target.value)}
+                      onBlur={() => cashTotal && setCashTotal(formatUSD(cashTotal))}
+                      placeholder="Auto-calculates or enter manually"
+                    />
+                  </div>
+                </div>
+
+                {/* Consignment Return - only shown if consignment selected */}
+                {isConsignment && (
+                  <div className="form-row">
+                    <label className="form-label">Estimated Consignment Return</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={consignmentReturn}
+                      onChange={(e) => setConsignmentReturn(e.target.value)}
+                      onBlur={() => consignmentReturn && setConsignmentReturn(formatUSD(consignmentReturn))}
+                      placeholder="e.g. $1,800.00 est."
+                    />
+                  </div>
+                )}
+
+                {/* Logistics */}
+                <div className="form-row-grid">
+                  <div className="form-row">
+                    <label className="form-label">Pickup / Logistics</label>
+                    <select
+                      className="form-control"
+                      value={pickupLogistics}
+                      onChange={(e) => setPickupLogistics(e.target.value)}
+                    >
+                      {PICKUP_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value} disabled={o.value === ''}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-row">
+                    <label className="form-label">Estimated Pickup / Close Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={pickupDate}
+                      onChange={(e) => setPickupDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="form-row">
+                  <label className="form-label">Quote Notes / Decline Reason *</label>
+                  <textarea
+                    className="form-control"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Provide your offer details, conditions, contingencies, or reason for declining. This field is required."
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {/* Vendor Info (readonly) */}
+              <div className="section">
+                <div className="section-label">RESPONDING VENDOR</div>
+                <div className="form-row-grid">
+                  <div className="form-row">
+                    <label className="form-label">Company</label>
+                    <input type="text" className="form-control readonly" value={deal.vendor.company} readOnly />
+                  </div>
+                  <div className="form-row">
+                    <label className="form-label">Contact Name</label>
+                    <input type="text" className="form-control readonly" value={deal.vendor.contact_name} readOnly />
+                  </div>
+                </div>
+                <div className="form-row-grid">
+                  <div className="form-row">
+                    <label className="form-label">Email</label>
+                    <input type="email" className="form-control readonly" value={deal.vendor.email} readOnly />
+                  </div>
+                  <div className="form-row">
+                    <label className="form-label">Phone</label>
+                    <input type="tel" className="form-control readonly" value={deal.vendor.phone} readOnly />
+                  </div>
+                </div>
+
+                {/* Quote Valid Through */}
+                <div className="form-row" style={{ marginTop: 16 }}>
+                  <label className="form-label">Quote Valid Through</label>
+                  <div className="quote-expiry">{quoteValidThrough}</div>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div className="section submit-section">
+                <button
+                  className="submit-btn"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
+                  {submitting ? '◆  SUBMITTING…' : '◆  SUBMIT QUOTE RESPONSE'}
+                </button>
+                <p className="submit-hint">
+                  Your response will be submitted directly to The Stuff Buyers team for review.
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="footer">
+                © 2026 The Stuff Buyers LLC · All Rights Reserved · {deal.deal_id}
+              </div>
+            </div>
+          )}
+        </div>
+      </body>
+    </html>
+  )
+}
+
+// ── State screens ─────────────────────────────────────────────────────────────
+
+function LoadingState() {
+  return (
+    <div className="state-screen">
+      <div className="wordmark">THE STUFF BUYERS</div>
+      <div className="state-text">Loading deal data…</div>
+    </div>
+  )
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="state-screen">
+      <div className="wordmark">THE STUFF BUYERS</div>
+      <div className="state-icon">✕</div>
+      <div className="state-heading">Link Invalid</div>
+      <div className="state-text">{message}</div>
+      <div className="state-contact">
+        Need help? Contact <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> or call <a href="tel:3143585293">(314) 358-5293</a>
+      </div>
+    </div>
+  )
+}
+
+function AlreadySubmittedState({ dealId }: { dealId: string }) {
+  return (
+    <div className="state-screen">
+      <div className="wordmark">THE STUFF BUYERS</div>
+      <div className="state-icon">✓</div>
+      <div className="state-heading">Quote Already Submitted</div>
+      <div className="state-text">
+        A quote has already been submitted for deal {dealId}. If you need to update your response, please contact us directly.
+      </div>
+      <div className="state-contact">
+        <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:3143585293">(314) 358-5293</a>
+      </div>
+    </div>
+  )
+}
+
+function ConfirmationState({ dealId }: { dealId: string }) {
+  return (
+    <div className="state-screen">
+      <div className="wordmark">THE STUFF BUYERS</div>
+      <div className="state-icon confirm">◆</div>
+      <div className="state-heading">Quote Received</div>
+      <div className="state-text">
+        Your quote for <strong>{dealId}</strong> has been submitted successfully.
+        The Stuff Buyers team will review and be in touch.
+      </div>
+      <div className="state-contact">
+        Questions? <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:3143585293">(314) 358-5293</a>
+      </div>
+    </div>
+  )
+}
+
+// ── Styles ─────────────────────────────────────────────────────────────────────
+
+const STYLES = `
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0F0F0F;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: #e8e8e8;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  /* ── Form Container ──────────────────────────── */
+
+  .form-container {
+    width: 100%;
+    max-width: 680px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+  }
+
+  /* ── Header ──────────────────────────────────── */
+
+  .form-header {
+    background: #111;
+    border-bottom: 3px solid #C9A84C;
+    padding: 32px 40px 24px;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .wordmark {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    color: #C9A84C;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: #888;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .deal-badge { text-align: right; }
+  .deal-id-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #C9A84C;
+    letter-spacing: 0.08em;
+  }
+  .deal-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: #666;
+    margin-top: 3px;
+  }
+
+  /* ── Banner ──────────────────────────────────── */
+
+  .banner {
+    background: #C9A84C;
+    padding: 10px 40px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #111;
+  }
+
+  /* ── Sections ────────────────────────────────── */
+
+  .section {
+    padding: 32px 40px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 16px;
+  }
+
+  /* ── Item Card ───────────────────────────────── */
+
+  .item-card {
+    background: #111;
+    border: 1px solid #2e2e2e;
+    border-left: 3px solid #C9A84C;
+    padding: 20px 24px;
+  }
+  .item-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #C9A84C;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+  .item-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+  .grid-cell {}
+  .field-key {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #666;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .field-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e8e8;
+    letter-spacing: 0.02em;
+    display: block;
+  }
+  .field-val.highlight { color: #C9A84C; font-size: 16px; }
+  .field-val.desc {
+    font-weight: 300;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+  .description-block {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  /* ── Deadline Bar ────────────────────────────── */
+
+  .deadline-bar {
+    background: #0f0f0f;
+    border-top: 1px solid #C9A84C;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 12px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dl-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #888;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .dl-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #C9A84C;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Form Controls ───────────────────────────── */
+
+  .form-row { margin-bottom: 16px; }
+  .form-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+  }
+  .form-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #888;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .form-control {
+    width: 100%;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-bottom: 2px solid #C9A84C;
+    color: #e8e8e8;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    padding: 10px 14px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    letter-spacing: 0.02em;
+    border-radius: 0;
+    transition: border-color 0.15s ease;
+  }
+  .form-control:focus {
+    border-color: #C9A84C;
+    border-bottom-color: #C9A84C;
+    box-shadow: 0 1px 0 0 #C9A84C;
+  }
+  .form-control.readonly {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #161616;
+  }
+  select.form-control { cursor: pointer; }
+  textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Quote Expiry ────────────────────────────── */
+
+  .quote-expiry {
+    background: #0f0f0f;
+    border: 1px solid #333;
+    border-left: 3px solid #C9A84C;
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #C9A84C;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Error Banner ────────────────────────────── */
+
+  .error-banner {
+    background: #2a1515;
+    border: 1px solid #662222;
+    border-left: 3px solid #cc4444;
+    color: #ff8888;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Submit ──────────────────────────────────── */
+
+  .submit-section { text-align: center; }
+  .submit-btn {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background: #C9A84C;
+    border: none;
+    border-bottom: 3px solid #a08530;
+    color: #111;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .submit-btn:hover:not(:disabled) {
+    background: #d4b358;
+  }
+  .submit-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    border-bottom-width: 2px;
+  }
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .submit-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #666;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* ── Footer ──────────────────────────────────── */
+
+  .footer {
+    background: #0d0d0d;
+    border-top: 1px solid #222;
+    padding: 14px 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #444;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* ── State Screens ───────────────────────────── */
+
+  .state-screen {
+    max-width: 480px;
+    text-align: center;
+    padding: 80px 32px;
+  }
+  .state-screen .wordmark {
+    margin-bottom: 40px;
+  }
+  .state-icon {
+    font-size: 48px;
+    color: #C9A84C;
+    margin-bottom: 16px;
+    font-weight: 800;
+  }
+  .state-icon.confirm { font-size: 56px; }
+  .state-heading {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e8e8e8;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .state-text {
+    font-size: 15px;
+    font-weight: 300;
+    color: #aaa;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .state-text strong { color: #C9A84C; font-weight: 600; }
+  .state-contact {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: #666;
+    letter-spacing: 0.08em;
+  }
+  .state-contact a {
+    color: #C9A84C;
+    text-decoration: none;
+  }
+  .state-contact a:hover { text-decoration: underline; }
+
+  /* ── Mobile ──────────────────────────────────── */
+
+  @media (max-width: 520px) {
+    .form-header, .section { padding: 24px 20px; }
+    .banner, .footer, .deadline-bar { padding-left: 20px; padding-right: 20px; }
+    .form-row-grid { grid-template-columns: 1fr; }
+    .item-grid { grid-template-columns: 1fr; }
+    .header-row { flex-direction: column; align-items: flex-start; }
+    .deal-badge { text-align: left; }
+  }
+`
