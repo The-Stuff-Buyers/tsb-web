@@ -59,9 +59,9 @@ export async function GET(req: NextRequest) {
   // Fetch deal by deal_id string (not UUID)
   const { data: deal, error: dealErr } = await supabase
     .from('deals')
-    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, description, stage, submitted_at')
+    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, description, stage, created_at, submitted_to_bidfta')
     .eq('deal_id', dealId)
-    .maybeSingle() as { data: { id: string; deal_id: string; item_name: string; condition: string | null; quantity: number; location_raw: string | null; category_id: string | null; description: string | null; stage: string; submitted_at: string | null } | null; error: unknown }
+    .maybeSingle() as { data: { id: string; deal_id: string; item_name: string; condition: string | null; quantity: number; location_raw: string | null; category_id: string | null; description: string | null; stage: string; created_at: string; submitted_to_bidfta: string | null } | null; error: unknown }
 
   if (dealErr || !deal) {
     return NextResponse.json(
@@ -92,16 +92,18 @@ export async function GET(req: NextRequest) {
     if (cat?.display_name) category = cat.display_name
   }
 
-  // Calculate deadline: submitted_at + 36 hours
+  // Calculate deadline: submitted_to_bidfta + 36 hours
   let deadline = 'TBD'
-  if (deal.submitted_at) {
-    const dl = new Date(new Date(deal.submitted_at).getTime() + 36 * 60 * 60 * 1000)
+  const deadlineBase = deal.submitted_to_bidfta || deal.created_at
+  if (deadlineBase) {
+    const dl = new Date(new Date(deadlineBase).getTime() + 36 * 60 * 60 * 1000)
     const dayStr = dl.toLocaleDateString('en-US', {
       weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
       timeZone: 'America/Chicago',
     })
     deadline = `${dayStr} by 5:00 PM CT`
   }
+
 
   // Vendor info based on vendor_name
   const vendorInfo: Record<string, { company: string; contact_name: string; email: string; phone: string }> = {
@@ -124,7 +126,7 @@ export async function GET(req: NextRequest) {
     category,
     description: deal.description || '',
     deadline,
-    submitted_at: deal.submitted_at,
+    submitted_at: deal.submitted_to_bidfta || deal.created_at,
     vendor,
   })
 }
