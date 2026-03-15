@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     .from('vendor_response_tokens')
     .select('id, deal_id, token, vendor_name, expires_at, used_at')
     .eq('token', token)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; deal_id: string; token: string; vendor_name: string; expires_at: string; used_at: string | null } | null; error: unknown }
 
   if (tokenErr || !tokenRow) {
     return NextResponse.json(
