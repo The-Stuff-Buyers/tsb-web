@@ -87,11 +87,20 @@ export async function POST(req: NextRequest) {
 
   try {
     // 3. Update the pending quote row
+    // Map form offer_type values to DB enum (consignment | cash | both)
+    let mappedOfferType: string | null = null
+    if (offer_type) {
+      const ot = offer_type.toLowerCase()
+      if (ot.startsWith('consignment')) mappedOfferType = 'consignment'
+      else if (ot === 'cash_purchase' || ot === 'cash') mappedOfferType = 'cash'
+      else if (ot === 'both') mappedOfferType = 'both'
+    }
+
     const quoteUpdate: Record<string, unknown> = {
       status: 'received',
       received_at: new Date().toISOString(),
       raw_response: body,
-      offer_type: offer_type || null,
+      offer_type: mappedOfferType,
       quantity_offered: parseInt(String(quantity_offered), 10) || null,
       cash_offer_per_unit: cash_offer_per_unit
         ? parseFloat(String(cash_offer_per_unit).replace(/[^0-9.]/g, '')) || null
