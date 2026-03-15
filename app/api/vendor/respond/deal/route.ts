@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
   const location = deal.location_raw || 'N/A'
 
   // Category display name
-  const category = (deal.categories as any)?.display_name || 'N/A'
+  const category = (deal.categories as { display_name?: string } | null)?.display_name || 'N/A'
 
   // Calculate deadline: submitted_at + 36 hours
   let deadline = 'TBD'
