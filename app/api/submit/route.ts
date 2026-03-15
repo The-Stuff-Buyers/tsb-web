@@ -163,11 +163,11 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 8. Send confirmation email (fire-and-forget — never blocks response)
-  void sendSubmissionConfirmation({
+  // 8. Send confirmation email (awaited — Vercel kills void promises after response)
+  await sendSubmissionConfirmation({
     to: body.email as string,
     contactName: body.contact_name as string | null,
-  })
+  }).catch(err => console.error('[email] confirmation failed:', err))
 
   // 9. Return success
   return NextResponse.json({
@@ -282,11 +282,11 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
   }
 
   if (items_accepted > 0) {
-    void sendSubmissionConfirmation({
+    await sendSubmissionConfirmation({
       to: body.email as string,
       contactName: body.contact_name as string | null,
       itemCount: items_accepted,
-    })
+    }).catch(err => console.error('[email] batch confirmation failed:', err))
   }
 
   return NextResponse.json({
