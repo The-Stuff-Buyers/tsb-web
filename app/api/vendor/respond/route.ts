@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     .from('vendor_response_tokens')
     .select('id, deal_id, token, expires_at, used_at')
     .eq('token', token)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; deal_id: string; token: string; expires_at: string; used_at: string | null } | null; error: unknown }
 
   if (tokenErr || !tokenRow) {
     return NextResponse.json({ error: 'This link is invalid or has expired.' }, { status: 403 })
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     .from('deals')
     .select('id, deal_id, stage, latest_quote_id')
     .eq('deal_id', deal_id)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; deal_id: string; stage: string; latest_quote_id: string | null } | null; error: unknown }
 
   if (dealErr || !deal) {
     return NextResponse.json({ error: 'Deal not found.' }, { status: 404 })
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
           ...quoteUpdate,
         } as never)
         .select()
-        .single()
+        .single() as { data: { id: string } | null }
 
       if (newQuote) {
         await supabase.from('deals').update({ latest_quote_id: newQuote.id } as never).eq('id', deal.id)

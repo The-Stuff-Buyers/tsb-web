@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -60,7 +60,15 @@ const PICKUP_OPTIONS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function VendorRespondPage() {
+export default function VendorRespondPageWrapper() {
+  return (
+    <Suspense fallback={<div style={{ background: '#0F0F0F', minHeight: '100vh' }} />}>
+      <VendorRespondPage />
+    </Suspense>
+  )
+}
+
+function VendorRespondPage() {
   const searchParams = useSearchParams()
   const dealParam = searchParams.get('deal') || ''
   const tokenParam = searchParams.get('token') || ''

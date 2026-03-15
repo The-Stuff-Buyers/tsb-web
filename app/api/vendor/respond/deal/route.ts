@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     .from('deals')
     .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, description, stage, submitted_at, categories(display_name)')
     .eq('deal_id', dealId)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; deal_id: string; item_name: string; condition: string | null; quantity: number; location_raw: string | null; category_id: string | null; description: string | null; stage: string; submitted_at: string | null; categories: { display_name?: string } | null } | null; error: unknown }
 
   if (dealErr || !deal) {
     return NextResponse.json(
