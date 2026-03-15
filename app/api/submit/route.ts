@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateSubmission, validateBatchSubmission, normalizeWebsite, normalizeUpc } from '@/lib/validation'
+import { sendSubmissionConfirmation } from '@/lib/email'
 
 // ── In-memory rate limiter (no external deps) ──────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -162,7 +163,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 8. Return success
+  // 8. Send confirmation email (fire-and-forget — never blocks response)
+  void sendSubmissionConfirmation({
+    to: body.email as string,
+    contactName: body.contact_name as string | null,
+  })
+
+  // 9. Return success
   return NextResponse.json({
     success: true,
     message: "Received. We'll be in touch within 24–48 hours.",
@@ -272,6 +279,14 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
     } else {
       items_accepted++
     }
+  }
+
+  if (items_accepted > 0) {
+    void sendSubmissionConfirmation({
+      to: body.email as string,
+      contactName: body.contact_name as string | null,
+      itemCount: items_accepted,
+    })
   }
 
   return NextResponse.json({
