@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSB Team Onboarding & Training Module</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal: #1A1A1A;
+  --charcoal-deep: #0F0F0F;
+  --charcoal-mid: #2A2A2A;
+  --charcoal-light: #3A3A3A;
+  --gold: #C9A84C;
+  --gold-bright: #D4AF37;
+  --gold-muted: #A08735;
+  --gold-pale: #E8D48B;
+  --cream: #F5F0E8;
+  --cream-dark: #D9D0C1;
+  --white: #FFFFFF;
+  --red-accent: #C0392B;
+  --green-accent: #27AE60;
+  --blue-accent: #5DADE2;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--charcoal-deep);
+  color: var(--cream);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NAVIGATION ─── */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(15,15,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--charcoal-light);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  transition: transform 0.3s ease;
+}
+.nav-logo {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  color: var(--cream-dark);
+  text-decoration: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.nav-links a:hover {
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 99px, rgba(201,168,76,0.03) 99px, rgba(201,168,76,0.03) 100px),
+    repeating-linear-gradient(90deg, transparent, transparent 99px, rgba(201,168,76,0.03) 99px, rgba(201,168,76,0.03) 100px);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  border: 1px solid var(--gold-muted);
+  padding: 0.4rem 1.2rem;
+  border-radius: 2px;
+  margin-bottom: 2.5rem;
+  text-transform: uppercase;
+  animation: fadeDown 0.8s ease-out;
+}
+.hero-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 1rem;
+  animation: fadeUp 0.8s ease-out 0.2s both;
+}
+.hero-title .gold { color: var(--gold); }
+.hero-tagline {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2rem;
+  animation: fadeUp 0.8s ease-out 0.4s both;
+}
+.hero-sub {
+  max-width: 600px;
+  font-size: 1.05rem;
+  color: var(--cream-dark);
+  line-height: 1.7;
+  animation: fadeUp 0.8s ease-out 0.6s both;
+}
+.hero-version {
+  margin-top: 2.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--charcoal-light);
+  letter-spacing: 0.1em;
+  animation: fadeUp 0.8s ease-out 0.8s both;
+}
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeUp 1s ease-out 1s both;
+}
+.scroll-indicator span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--charcoal-light);
+}
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* ─── SECTIONS ─── */
+.section {
+  padding: 5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+.section + .section { border-top: 1px solid var(--charcoal-mid); }
+
+.section-number {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 6rem;
+  color: var(--charcoal-mid);
+  line-height: 1;
+  margin-bottom: -0.5rem;
+  user-select: none;
+}
+.section-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.section-rule {
+  width: 60px;
+  height: 3px;
+  background: var(--gold);
+  margin-bottom: 2rem;
+}
+.section-intro {
+  max-width: 780px;
+  font-size: 1.05rem;
+  color: var(--cream-dark);
+  margin-bottom: 2.5rem;
+}
+
+/* ─── CORE PROMISE BANNER ─── */
+.promise-banner {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-muted) 100%);
+  color: var(--charcoal-deep);
+  padding: 3rem;
+  text-align: center;
+  margin: 2rem 0 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.promise-banner::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(15,15,15,0.15);
+}
+.promise-banner h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.promise-banner p {
+  font-size: 1rem;
+  max-width: 550px;
+  margin: 0 auto;
+  opacity: 0.85;
+}
+
+/* ─── INFO CARDS ─── */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+.info-card {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 2rem;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.info-card:hover {
+  border-color: var(--gold-muted);
+  transform: translateY(-2px);
+}
+.info-card .icon {
+  width: 44px;
+  height: 44px;
+  background: var(--charcoal-mid);
+  border: 1px solid var(--charcoal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  font-size: 1.3rem;
+}
+.info-card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+.info-card p {
+  font-size: 0.92rem;
+  color: var(--cream-dark);
+  line-height: 1.6;
+}
+
+/* ─── COMPANY TABLE ─── */
+.company-table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: collapse;
+}
+.company-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--charcoal-mid);
+  font-size: 0.95rem;
+}
+.company-table td:first-child {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  width: 200px;
+  font-size: 0.85rem;
+}
+.company-table td:last-child {
+  color: var(--cream);
+}
+
+/* ─── PIPELINE ─── */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 2rem 0;
+  position: relative;
+}
+.pipeline::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--gold-muted) 0, var(--gold-muted) 8px,
+    transparent 8px, transparent 16px
+  );
+}
+.pipeline-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  position: relative;
+}
+.pipeline-dot {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  background: var(--charcoal);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--gold);
+  z-index: 1;
+}
+.pipeline-dot.gate {
+  background: var(--gold);
+  color: var(--charcoal-deep);
+  border-color: var(--gold);
+}
+.pipeline-content h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+.pipeline-content .who {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.pipeline-content p {
+  font-size: 0.9rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── CRITICAL RULE CALLOUT ─── */
+.callout {
+  border-left: 4px solid var(--gold);
+  background: rgba(201,168,76,0.06);
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+}
+.callout.critical {
+  border-left-color: var(--red-accent);
+  background: rgba(192,57,43,0.08);
+}
+.callout.tip {
+  border-left-color: var(--green-accent);
+  background: rgba(39,174,96,0.06);
+}
+.callout .callout-label {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.callout.critical .callout-label { color: var(--red-accent); }
+.callout.tip .callout-label { color: var(--green-accent); }
+.callout p { font-size: 0.95rem; color: var(--cream); }
+
+/* ─── REQUIRED FIELDS TABLE ─── */
+.fields-table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+.fields-table tr {
+  background: var(--charcoal);
+}
+.fields-table td {
+  padding: 1rem 1.2rem;
+  font-size: 0.92rem;
+  border: 1px solid var(--charcoal-light);
+  border-right: none;
+  border-left: none;
+}
+.fields-table td:first-child {
+  border-left: 1px solid var(--charcoal-light);
+  width: 50px;
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+.fields-table td:nth-child(2) {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  width: 200px;
+  font-size: 0.9rem;
+}
+.fields-table td:last-child {
+  border-right: 1px solid var(--charcoal-light);
+  color: var(--cream-dark);
+}
+
+/* ─── PITCH BOX ─── */
+.pitch-box {
+  background: var(--charcoal);
+  border: 2px solid var(--gold-muted);
+  padding: 2.5rem;
+  margin: 2rem 0;
+  position: relative;
+}
+.pitch-box::before {
+  content: '"';
+  font-family: 'Oswald', sans-serif;
+  font-size: 6rem;
+  color: var(--gold);
+  opacity: 0.2;
+  position: absolute;
+  top: 0rem;
+  left: 1.5rem;
+  line-height: 1;
+}
+.pitch-box p {
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: var(--cream);
+  position: relative;
+  z-index: 1;
+  font-style: italic;
+}
+
+/* ─── FAQ ACCORDION ─── */
+.faq-list {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.faq-item {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.faq-item:hover { border-color: var(--charcoal-light); }
+.faq-q {
+  padding: 1.2rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cream);
+  user-select: none;
+  transition: color 0.3s;
+}
+.faq-q:hover { color: var(--gold); }
+.faq-q .toggle {
+  font-size: 1.2rem;
+  color: var(--gold);
+  transition: transform 0.3s;
+}
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+.faq-a-inner {
+  padding: 0 1.5rem 1.2rem;
+  font-size: 0.92rem;
+  color: var(--cream-dark);
+  line-height: 1.65;
+}
+.faq-item.open .faq-a { max-height: 300px; }
+.faq-item.open .toggle { transform: rotate(45deg); }
+
+/* ─── TARGET GRID ─── */
+.target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.target-card {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.target-card:hover {
+  border-color: var(--gold-muted);
+  transform: translateY(-2px);
+}
+.target-card .priority {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  display: inline-block;
+  margin-bottom: 0.8rem;
+}
+.priority.high { color: var(--gold); background: rgba(201,168,76,0.15); }
+.priority.med { color: var(--blue-accent); background: rgba(93,173,226,0.12); }
+.priority.all { color: var(--green-accent); background: rgba(39,174,96,0.12); }
+.target-card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.target-card p {
+  font-size: 0.82rem;
+  color: var(--cream-dark);
+  line-height: 1.5;
+}
+
+/* ─── TOOLS TABLE ─── */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+.tool-card {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 1.8rem;
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  transition: border-color 0.3s;
+}
+.tool-card:hover { border-color: var(--gold-muted); }
+.tool-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: var(--charcoal-mid);
+  border: 1px solid var(--charcoal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.tool-card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+.tool-card p {
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── DO / DON'T COLUMNS ─── */
+.do-dont {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+@media (max-width: 768px) {
+  .do-dont { grid-template-columns: 1fr; }
+}
+.do-col, .dont-col {
+  padding: 2rem;
+}
+.do-col {
+  background: rgba(39,174,96,0.05);
+  border: 1px solid rgba(39,174,96,0.2);
+}
+.dont-col {
+  background: rgba(192,57,43,0.05);
+  border: 1px solid rgba(192,57,43,0.2);
+}
+.do-col h3, .dont-col h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+.do-col h3 { color: var(--green-accent); }
+.dont-col h3 { color: var(--red-accent); }
+.do-col li, .dont-col li {
+  font-size: 0.9rem;
+  color: var(--cream-dark);
+  margin-bottom: 0.8rem;
+  padding-left: 1.5rem;
+  position: relative;
+  list-style: none;
+  line-height: 1.55;
+}
+.do-col li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--green-accent);
+  font-weight: 700;
+}
+.dont-col li::before {
+  content: '✗';
+  position: absolute;
+  left: 0;
+  color: var(--red-accent);
+  font-weight: 700;
+}
+
+/* ─── QUICK REF CARD ─── */
+.quick-ref {
+  background: linear-gradient(135deg, var(--charcoal) 0%, var(--charcoal-mid) 100%);
+  border: 2px solid var(--gold);
+  padding: 3rem;
+  margin: 2rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.quick-ref::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.quick-ref h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-bottom: 2rem;
+}
+.ref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+@media (max-width: 768px) {
+  .ref-grid { grid-template-columns: 1fr; }
+}
+.ref-col h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--charcoal-light);
+}
+.ref-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(58,58,58,0.5);
+  font-size: 0.88rem;
+}
+.ref-row .label {
+  color: var(--cream-dark);
+}
+.ref-row .value {
+  color: var(--cream);
+  font-weight: 600;
+  text-align: right;
+}
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  font-size: 0.88rem;
+  color: var(--cream-dark);
+}
+.checklist-item .box {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 2px solid var(--gold-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── TWO-GATE BANNER ─── */
+.gate-banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+@media (max-width: 768px) {
+  .gate-banner { grid-template-columns: 1fr; }
+}
+.gate-box {
+  padding: 2rem;
+  text-align: center;
+  border: 2px solid var(--gold);
+  background: rgba(201,168,76,0.04);
+}
+.gate-box .gate-label {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.3rem;
+}
+.gate-box h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-bottom: 0.6rem;
+}
+.gate-box p {
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+}
+
+/* ─── ENTRY METHODS ─── */
+.entry-methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+@media (max-width: 768px) {
+  .entry-methods { grid-template-columns: 1fr; }
+}
+.entry-card {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 2rem;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.entry-card:hover { border-color: var(--gold-muted); }
+.entry-card .entry-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+.entry-card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.entry-card p {
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── KEY MSG LIST ─── */
+.key-messages {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.key-msg {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+}
+.key-msg .bullet {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: var(--gold);
+  color: var(--charcoal-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.key-msg h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+.key-msg p {
+  font-size: 0.88rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── FLOOR OPS ─── */
+.floor-steps {
+  margin: 2rem 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.floor-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 1.2rem;
+  background: var(--charcoal);
+  border-left: 3px solid var(--gold);
+}
+.floor-step .step-num {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--gold);
+  line-height: 1;
+  min-width: 30px;
+}
+.floor-step p {
+  font-size: 0.9rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── MATERIALS LIST ─── */
+.materials-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2rem 0;
+}
+.material-tag {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 0.7rem 1.2rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.material-tag .mat-icon { color: var(--gold); }
+
+/* ─── EOD PROTOCOL ─── */
+.eod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.eod-item {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.eod-num {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--gold);
+  line-height: 1;
+}
+.eod-item p {
+  font-size: 0.88rem;
+  color: var(--cream-dark);
+}
+
+/* ─── FOOTER ─── */
+.footer {
+  text-align: center;
+  padding: 4rem 2rem;
+  border-top: 1px solid var(--charcoal-mid);
+}
+.footer-brand {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.3rem;
+}
+.footer-tagline {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 300;
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream-dark);
+  margin-bottom: 1.5rem;
+}
+.footer-contact {
+  font-size: 0.85rem;
+  color: var(--charcoal-light);
+}
+.footer-contact a {
+  color: var(--cream-dark);
+  text-decoration: none;
+}
+
+/* ─── SUBSECTION LABEL ─── */
+.sub-heading {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--charcoal-mid);
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .section { padding: 3rem 1.5rem; }
+  .section-number { font-size: 4rem; }
+  .promise-banner { padding: 2rem 1.5rem; }
+  .promise-banner h3 { font-size: 1.8rem; letter-spacing: 0.2em; }
+  .quick-ref { padding: 2rem; }
+  .pitch-box { padding: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav-bar">
+  <div class="nav-logo">TSB Training</div>
+  <div class="nav-links">
+    <a href="#welcome">Welcome</a>
+    <a href="#who">Who We Are</a>
+    <a href="#bidfta">BidFTA</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#data">Data Entry</a>
+    <a href="#pitch">The Pitch</a>
+    <a href="#tradeshow">Trade Shows</a>
+    <a href="#tools">Tools</a>
+    <a href="#rules">Do's & Don'ts</a>
+    <a href="#quickref">Quick Ref</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Version 1.0 — March 2026</div>
+  <h1 class="hero-title">THE <span class="gold">STUFF</span> BUYERS</h1>
+  <p class="hero-tagline">Easy. Simple. Fast.</p>
+  <p class="hero-sub">Team Onboarding &amp; Training Module — Everything you need to understand who we are, how the pipeline works, what to say, and how to operate in the field.</p>
+  <p class="hero-version">thestuffbuyers.com • Prepared for new and incoming team members of The Stuff Buyers LLC</p>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- 1. WELCOME -->
+<section class="section reveal" id="welcome">
+  <div class="section-number">01</div>
+  <h2 class="section-title">Welcome to The Stuff Buyers</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Welcome to the team. You are joining a fast-moving, AI-powered wholesale inventory brokerage that is redefining how businesses liquidate their excess, surplus, overstock, and closeout inventory. Whether you are in the office, at a trade show, or working remotely, your work directly drives deals that help real businesses move real product.</p>
+  <p class="section-intro">This training module will give you everything you need to understand who we are, what we do, how our pipeline works, what to say when representing the company, and how to operate effectively at trade shows and in the field.</p>
+
+  <div class="promise-banner reveal">
+    <h3>Easy. Simple. Fast.</h3>
+    <p>Everything we do — every interaction, every quote, every piece of technology we build — is designed to make the process of liquidating inventory as painless as possible for the seller. That is what sets us apart.</p>
+  </div>
+</section>
+
+<!-- 2. WHO WE ARE -->
+<section class="section reveal" id="who">
+  <div class="section-number">02</div>
+  <h2 class="section-title">Who We Are</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">The Stuff Buyers LLC is a wholesale inventory acquisition and liquidation brokerage. We connect businesses that have excess, surplus, overstock, discontinued, closeout, or unwanted inventory with buyers who will purchase that inventory in bulk.</p>
+
+  <h3 class="sub-heading">What Does That Mean?</h3>
+  <p class="section-intro">Think of us as the middleman between a company that has a warehouse full of product they need to move and a network of auction and resale buyers ready to buy it. We do not buy the inventory ourselves. We do not price it. We broker the deal. Our job is to make the connection as fast and painless as possible for the seller.</p>
+
+  <h3 class="sub-heading">Company Details</h3>
+  <table class="company-table reveal">
+    <tr><td>Legal Entity</td><td>The Stuff Buyers LLC</td></tr>
+    <tr><td>Brand / DBA</td><td>The Stuff Buyers (TSB)</td></tr>
+    <tr><td>Website</td><td>thestuffbuyers.com</td></tr>
+    <tr><td>Tagline</td><td>Easy. Simple. Fast.</td></tr>
+    <tr><td>Founded</td><td>2025</td></tr>
+    <tr><td>Headquarters</td><td>Texas</td></tr>
+    <tr><td>Managing Director</td><td>Blake Harris</td></tr>
+    <tr><td>Primary Email</td><td>quotes@thestuffbuyers.com</td></tr>
+    <tr><td>Sales Email</td><td>sales@thestuffbuyers.com</td></tr>
+    <tr><td>Phone</td><td>(314) 358-5293</td></tr>
+  </table>
+
+  <h3 class="sub-heading">What We Handle</h3>
+  <div class="info-grid reveal">
+    <div class="info-card"><div class="icon">📦</div><h4>Excess &amp; Overstock</h4><p>Inventory from retailers, wholesalers, and manufacturers that exceeds current demand.</p></div>
+    <div class="info-card"><div class="icon">🏷️</div><h4>Closeouts &amp; Discontinued</h4><p>Product lines being retired, rebranded, or replaced with newer models.</p></div>
+    <div class="info-card"><div class="icon">🏭</div><h4>Warehouse Cleanouts</h4><p>Full-facility liquidations for businesses moving, closing, or restructuring.</p></div>
+    <div class="info-card"><div class="icon">🔄</div><h4>Seasonal &amp; Returns</h4><p>Seasonal surplus and returned merchandise that needs to move quickly.</p></div>
+    <div class="info-card"><div class="icon">🔧</div><h4>Equipment &amp; Fixtures</h4><p>Business assets, fixtures, and equipment that companies need to offload.</p></div>
+    <div class="info-card"><div class="icon">✦</div><h4>Virtually Anything</h4><p>If a business needs to move it out of their space, we are the people to talk to.</p></div>
+  </div>
+
+  <h3 class="sub-heading">What We Do NOT Do</h3>
+  <div class="info-grid reveal">
+    <div class="info-card"><div class="icon">🚫</div><h4>We Don't Buy</h4><p>We do not buy inventory ourselves — we broker it.</p></div>
+    <div class="info-card"><div class="icon">🚫</div><h4>We Don't Price</h4><p>We do not set prices — our auction partner handles pricing.</p></div>
+    <div class="info-card"><div class="icon">🚫</div><h4>No Logistics</h4><p>We do not handle logistics or freight unless arranged separately.</p></div>
+    <div class="info-card"><div class="icon">🚫</div><h4>No Consumer Sales</h4><p>We do not deal in consumer-to-consumer sales.</p></div>
+  </div>
+</section>
+
+<!-- 3. BIDFTA -->
+<section class="section reveal" id="bidfta">
+  <div class="section-number">03</div>
+  <h2 class="section-title">Our Partner: BidFTA</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">BidFTA (Fast Track Auctions) is our primary liquidation auction partner. They are the ones who actually evaluate, price, and auction the inventory that comes through our pipeline. Understanding who they are and how they operate is essential to your success on this team.</p>
+
+  <div class="info-grid reveal">
+    <div class="info-card"><div class="icon">🏢</div><h4>Full Name</h4><p>BidFTA.com — operated by Fast Track IT</p></div>
+    <div class="info-card"><div class="icon">📍</div><h4>Headquarters</h4><p>Cincinnati, Ohio area with 30+ warehouse locations nationwide</p></div>
+    <div class="info-card"><div class="icon">🔨</div><h4>What They Do</h4><p>Online auction marketplace for liquidation, returns, overstock, and surplus inventory</p></div>
+    <div class="info-card"><div class="icon">👥</div><h4>Their Buyers</h4><p>Resellers, small businesses, bargain shoppers, bin store operators</p></div>
+  </div>
+
+  <h3 class="sub-heading">How We Work With BidFTA</h3>
+  <p class="section-intro">When a seller submits inventory to us and our Managing Director approves the deal, we send a detailed quote request to BidFTA. They review the inventory details, evaluate the product, and respond with an offer that includes a price, timeline, and conditions. We review that offer and, if approved, relay it to the original seller.</p>
+
+  <div class="callout critical reveal">
+    <div class="callout-label">⚠ Critical Rule</div>
+    <p>We <strong>never</strong> share the seller's direct contact information (phone, email) with BidFTA. BidFTA receives the seller's name and inventory details only. All communication flows through TSB. We are the bridge, and we protect our sellers' relationships.</p>
+  </div>
+
+  <h3 class="sub-heading">What to Tell People About BidFTA</h3>
+  <div class="key-messages reveal">
+    <div class="key-msg"><div class="bullet">1</div><div><h4>Scale &amp; Reach</h4><p>"Our auction partner with over 30 locations across the country."</p></div></div>
+    <div class="key-msg"><div class="bullet">2</div><div><h4>Specialization</h4><p>"A nationwide online auction platform that specializes in liquidation."</p></div></div>
+    <div class="key-msg"><div class="bullet">3</div><div><h4>Our Role</h4><p>"The team that handles pricing and selling — we handle the connection."</p></div></div>
+  </div>
+</section>
+
+<!-- 4. PIPELINE -->
+<section class="section reveal" id="pipeline">
+  <div class="section-number">04</div>
+  <h2 class="section-title">How the Deal Pipeline Works</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Every deal at TSB follows a structured pipeline. This is not optional — every piece of inventory goes through the same process, every time. The pipeline is managed by our internal system called Cyclops, which automates notifications, validations, and tracking.</p>
+
+  <h3 class="sub-heading">The Deal Stages</h3>
+  <div class="pipeline reveal">
+    <div class="pipeline-stage">
+      <div class="pipeline-dot">01</div>
+      <div class="pipeline-content">
+        <h4>Intake</h4>
+        <div class="who">Actor → You / Seller</div>
+        <p>Seller submits inventory info via email, web form, or in person at a trade show. Data enters the system.</p>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-dot gate">G1</div>
+      <div class="pipeline-content">
+        <h4>Gate 1 — Pending Review</h4>
+        <div class="who">Actor → Blake</div>
+        <p>Blake reviews the deal. If approved, the deal is forwarded to BidFTA for pricing.</p>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-dot">03</div>
+      <div class="pipeline-content">
+        <h4>Submitted to BidFTA</h4>
+        <div class="who">Actor → BidFTA</div>
+        <p>BidFTA evaluates the inventory and responds with an offer — price, timeline, and conditions.</p>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-dot gate">G2</div>
+      <div class="pipeline-content">
+        <h4>Gate 2 — Offer Review</h4>
+        <div class="who">Actor → Blake</div>
+        <p>Blake reviews BidFTA's offer. If approved, the offer is sent to the seller.</p>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-dot">05</div>
+      <div class="pipeline-content">
+        <h4>Offer Sent</h4>
+        <div class="who">Actor → Seller</div>
+        <p>The seller receives the offer and decides whether to accept or decline.</p>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-dot">06</div>
+      <div class="pipeline-content">
+        <h4>Closed</h4>
+        <div class="who">Actor → System</div>
+        <p>Deal resolved — accepted, declined, or expired. Full audit trail recorded.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">The Two-Gate System</h3>
+  <p class="section-intro">The two gates exist for quality control and seller protection. No inventory description goes to BidFTA without Blake's approval (Gate 1). No offer goes to a seller without Blake's approval (Gate 2).</p>
+  <div class="gate-banner reveal">
+    <div class="gate-box">
+      <div class="gate-label">Gate 1</div>
+      <h4>Deal Approval</h4>
+      <p>Nothing slips through accidentally. Every deal is reviewed before it goes to BidFTA.</p>
+    </div>
+    <div class="gate-box">
+      <div class="gate-label">Gate 2</div>
+      <h4>Offer Approval</h4>
+      <p>Every seller gets a vetted, reviewed offer. We maintain full control of our reputation.</p>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">Three Ways Deals Enter the System</h3>
+  <div class="entry-methods reveal">
+    <div class="entry-card">
+      <div class="entry-icon">✉️</div>
+      <h4>Email</h4>
+      <p>Sellers email us directly at quotes@thestuffbuyers.com with their inventory details.</p>
+    </div>
+    <div class="entry-card">
+      <div class="entry-icon">🌐</div>
+      <h4>Web Form</h4>
+      <p>Sellers fill out a structured form at thestuffbuyers.com/intake-form. Up to 10 items per submission.</p>
+    </div>
+    <div class="entry-card">
+      <div class="entry-icon">🤝</div>
+      <h4>In Person</h4>
+      <p>You collect the info at trade shows and events and enter it into the system on their behalf.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. DATA ENTRY -->
+<section class="section reveal" id="data">
+  <div class="section-number">05</div>
+  <h2 class="section-title">Your Role: Data Entry &amp; Deal Submission</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Getting deals into the system accurately is one of the most important things you will do. Bad data means delayed deals, confused sellers, and wasted time. Good data means fast quotes and closed deals.</p>
+
+  <h3 class="sub-heading">The 7 Required Fields</h3>
+  <p style="margin-bottom: 1rem; color: var(--cream-dark); font-size: 0.92rem;">Every deal submission needs these seven pieces of information. If any are missing, the system will flag it and an auto-reply will ask the seller to fill in the gaps.</p>
+
+  <table class="fields-table reveal">
+    <tr><td>1</td><td>Contact Name</td><td>Full name of the person you are speaking with — the decision maker if possible.</td></tr>
+    <tr><td>2</td><td>Company Name</td><td>The legal or commonly used name of their business.</td></tr>
+    <tr><td>3</td><td>Email Address</td><td>Primary email for correspondence. Double-check spelling.</td></tr>
+    <tr><td>4</td><td>Phone Number</td><td>Direct phone number. Mobile preferred for faster contact.</td></tr>
+    <tr><td>5</td><td>Item Description</td><td>What are they selling? Be specific: product type, brand if known, general condition.</td></tr>
+    <tr><td>6</td><td>Est. Quantity</td><td>How many units, pallets, truckloads, etc. "A lot" is not a quantity. Get a number or a range.</td></tr>
+    <tr><td>7</td><td>Location</td><td>Where is the inventory physically located? City and state at minimum. Full address ideal.</td></tr>
+  </table>
+
+  <h3 class="sub-heading">Helpful Bonus Information</h3>
+  <div class="info-grid reveal">
+    <div class="info-card"><div class="icon">📸</div><h4>Photos</h4><p>The more the better — even phone photos are fine.</p></div>
+    <div class="info-card"><div class="icon">📋</div><h4>Manifests / SKU Lists</h4><p>Packing lists or SKU lists if available.</p></div>
+    <div class="info-card"><div class="icon">💰</div><h4>Retail Value</h4><p>Original cost or retail value if the seller knows.</p></div>
+    <div class="info-card"><div class="icon">📦</div><h4>Condition</h4><p>New in box, open box, returns, damaged, mixed.</p></div>
+    <div class="info-card"><div class="icon">⏱️</div><h4>Timeline</h4><p>How soon do they need it moved?</p></div>
+    <div class="info-card"><div class="icon">❓</div><h4>Reason</h4><p>Closing, downsizing, seasonal, overstock, etc.</p></div>
+  </div>
+
+  <h3 class="sub-heading">How to Submit a Deal</h3>
+  <div class="entry-methods reveal" style="grid-template-columns: 1fr 1fr;">
+    <div class="entry-card">
+      <div class="entry-icon">🌐</div>
+      <h4>Web Form (Preferred)</h4>
+      <p>Use the form at thestuffbuyers.com/intake-form. Walks you through all required fields and validates before submission.</p>
+    </div>
+    <div class="entry-card">
+      <div class="entry-icon">✉️</div>
+      <h4>Email</h4>
+      <p>Send details to quotes@thestuffbuyers.com. Format the email clearly with all seven required fields.</p>
+    </div>
+  </div>
+
+  <div class="callout tip reveal">
+    <div class="callout-label">💡 Pro Tip</div>
+    <p>Install the web form as an app on your phone. Go to thestuffbuyers.com on your phone's browser, then use "Add to Home Screen." It works like a native app and can be used on the trade show floor.</p>
+  </div>
+</section>
+
+<!-- 6. THE PITCH -->
+<section class="section reveal" id="pitch">
+  <div class="section-number">06</div>
+  <h2 class="section-title">Talking Points — The TSB Pitch</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Whether you are at a trade show, on a phone call, or talking to someone at a networking event, these are the core messages you should be able to deliver naturally and confidently.</p>
+
+  <h3 class="sub-heading">The 30-Second Elevator Pitch</h3>
+  <div class="pitch-box reveal">
+    <p>"We're The Stuff Buyers. We help businesses liquidate their excess, overstock, closeout, and surplus inventory. If you've got a warehouse full of product you need to move, we connect you with buyers who will take it off your hands — fast. We handle the whole process for you. It's easy, simple, and fast."</p>
+  </div>
+
+  <h3 class="sub-heading">Key Messages to Reinforce</h3>
+  <div class="key-messages reveal">
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"We buy stuff."</h4><p>This is the simplest version of what we do. The name says it all. If someone has stuff they need to get rid of, we are the people to talk to.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"Zero cost to get a quote."</h4><p>Submitting inventory for a quote costs nothing. There is no obligation. This removes the biggest barrier to entry.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"We handle everything."</h4><p>Once a seller says yes, we coordinate the entire process. They don't have to find buyers, post listings, or manage logistics.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"Nationwide auction network."</h4><p>Our partner BidFTA has 30+ locations. This gives sellers confidence that we have real infrastructure behind us.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"Easy, simple, and fast."</h4><p>Repeat this. This is the brand promise. Everything we do minimizes the seller's effort and maximizes their speed to resolution.</p></div></div>
+  </div>
+
+  <h3 class="sub-heading">Common Questions &amp; How to Answer Them</h3>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <div class="faq-q">"How much will I get for my inventory?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"That depends on the product, quantity, and condition. But getting a quote is completely free and usually takes just a couple of business days. Let's get your info submitted and find out."</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"Do you buy everything?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"We handle a very wide range of inventory — from consumer goods and electronics to equipment, fixtures, and industrial surplus. The best way to find out is to submit it. There's no cost and no obligation."</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"How does the process work?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"You give us the details on what you've got. We review it, send it to our auction network for pricing, and come back to you with an offer. If you like the offer, we move forward. If not, no hard feelings."</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"Who buys the stuff?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"Our auction partner sells to a network of thousands of buyers — resellers, small businesses, bargain retailers, you name it. They specialize in moving volume quickly."</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"What does it cost me?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"Getting a quote costs nothing. If a deal closes, the terms are built into the offer — there are no hidden fees to you as the seller."</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"How fast can you move it?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">"Timelines vary depending on the size and type of inventory, but we typically get an initial quote back within a few business days. Once a deal is accepted, removal is coordinated quickly."</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. TRADE SHOW -->
+<section class="section reveal" id="tradeshow">
+  <div class="section-number">07</div>
+  <h2 class="section-title">Trade Show Strategy &amp; Field Operations</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Trade shows are one of our highest-value lead generation channels. While we will always have a booth as a home base, the real work happens on the floor. Your primary mission is to walk the show, meet people, distribute materials, and get quotes submitted.</p>
+
+  <div class="callout reveal">
+    <div class="callout-label" style="color: var(--gold);">🎯 The Mission</div>
+    <p>Every person at a trade show is a potential seller. Exhibitors have inventory. Retailers have overstock. Distributors have closeouts. Manufacturers have surplus. Even attendees browsing the floor may own businesses with inventory they need to move. <strong>Your job is to talk to everyone.</strong></p>
+  </div>
+
+  <h3 class="sub-heading">Booth Operations</h3>
+  <p class="section-intro">The booth is our home base, not our primary workspace. Always have at least one team member staffing the booth while others walk the floor.</p>
+  <div class="info-grid reveal">
+    <div class="info-card"><div class="icon">👋</div><h4>Greet &amp; Pitch</h4><p>Greet people who stop by and deliver the elevator pitch.</p></div>
+    <div class="info-card"><div class="icon">📄</div><h4>Distribute</h4><p>Hand out flyers and business cards to every visitor.</p></div>
+    <div class="info-card"><div class="icon">📝</div><h4>Collect</h4><p>Gather contact info and help visitors submit quotes via tablet or phone.</p></div>
+    <div class="info-card"><div class="icon">✨</div><h4>Display</h4><p>Keep branded materials and signage clean and visible.</p></div>
+  </div>
+
+  <h3 class="sub-heading">Floor Operations — Walking the Show</h3>
+  <p style="margin-bottom: 1rem; color: var(--cream-dark); font-size: 0.92rem;">This is where the majority of your time should be spent. The strategy is simple but requires energy and confidence.</p>
+  <div class="floor-steps reveal">
+    <div class="floor-step"><div class="step-num">1</div><p>Walk every aisle. Visit every booth. Do not skip anyone.</p></div>
+    <div class="floor-step"><div class="step-num">2</div><p>Introduce yourself: "Hi, I'm [Name] with The Stuff Buyers. We help businesses liquidate their excess inventory. Do you ever have overstock, closeouts, or surplus you need to move?"</p></div>
+    <div class="floor-step"><div class="step-num">3</div><p>Hand them a flyer and a business card every time, even if they say no.</p></div>
+    <div class="floor-step"><div class="step-num">4</div><p>If they express any interest, get their info immediately. Do not wait. Use the web form on your phone.</p></div>
+    <div class="floor-step"><div class="step-num">5</div><p>Ask for specifics: "What kind of product? How much? Where is it located?"</p></div>
+    <div class="floor-step"><div class="step-num">6</div><p>If they aren't the right person, ask: "Who at your company handles surplus inventory or warehouse cleanouts?"</p></div>
+    <div class="floor-step"><div class="step-num">7</div><p>Be friendly, direct, and brief. Respect their time. You are planting seeds.</p></div>
+  </div>
+
+  <h3 class="sub-heading">Who to Target</h3>
+  <div class="target-grid reveal">
+    <div class="target-card"><span class="priority high">Highest Priority</span><h4>Exhibitors</h4><p>Actively in business — likely have overstock, returns, closeouts, or discontinued lines.</p></div>
+    <div class="target-card"><span class="priority high">Highest Priority</span><h4>Retailers</h4><p>Buy and sell product in volume. Almost certainly have something to liquidate.</p></div>
+    <div class="target-card"><span class="priority high">High Priority</span><h4>Distributors</h4><p>Handle large volumes with frequent surplus, damaged, or end-of-life product.</p></div>
+    <div class="target-card"><span class="priority high">High Priority</span><h4>Manufacturers</h4><p>Overruns, defects, discontinued SKUs, packaging changes — always have inventory to move.</p></div>
+    <div class="target-card"><span class="priority med">Don't Skip</span><h4>Attendees</h4><p>May own a business, manage a warehouse, or know someone who does. Hand them a flyer.</p></div>
+    <div class="target-card"><span class="priority all">Cast Wide</span><h4>Show Staff / Vendors</h4><p>Venue vendors and service providers may know businesses that need liquidation help.</p></div>
+  </div>
+
+  <h3 class="sub-heading">Materials to Carry on the Floor</h3>
+  <div class="materials-list reveal">
+    <div class="material-tag"><span class="mat-icon">🃏</span> Business Cards</div>
+    <div class="material-tag"><span class="mat-icon">📄</span> Flyers</div>
+    <div class="material-tag"><span class="mat-icon">📱</span> Phone + Web Form</div>
+    <div class="material-tag"><span class="mat-icon">📝</span> Notepad / Notes App</div>
+    <div class="material-tag"><span class="mat-icon">⚡</span> Positive Attitude &amp; Energy</div>
+  </div>
+
+  <h3 class="sub-heading">End-of-Day Protocol</h3>
+  <div class="eod-grid reveal">
+    <div class="eod-item"><div class="eod-num">1</div><p>Submit all collected leads and deal info into the system before leaving for the night.</p></div>
+    <div class="eod-item"><div class="eod-num">2</div><p>Debrief with Blake or the team lead on highlights, promising leads, and any issues.</p></div>
+    <div class="eod-item"><div class="eod-num">3</div><p>Restock flyers and business cards for the next day.</p></div>
+    <div class="eod-item"><div class="eod-num">4</div><p>Charge your phone — you will need it.</p></div>
+  </div>
+</section>
+
+<!-- 8. TOOLS -->
+<section class="section reveal" id="tools">
+  <div class="section-number">08</div>
+  <h2 class="section-title">Tools You Will Use</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">You do not need to be a tech expert. The tools are designed to be simple. Here is what you will interact with day to day.</p>
+
+  <div class="tools-grid reveal">
+    <div class="tool-card">
+      <div class="tool-icon">🌐</div>
+      <div><h4>TSB Website</h4><p>The public site at thestuffbuyers.com. The intake form is your primary deal submission tool.</p></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">✉️</div>
+      <div><h4>Email</h4><p>quotes@thestuffbuyers.com for deal submissions. sales@thestuffbuyers.com for general inquiries. Always use company email.</p></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📊</div>
+      <div><h4>Linear</h4><p>Our project and task management tool. Every deal becomes a task in Linear. You may check deal statuses or update notes here.</p></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">💬</div>
+      <div><h4>Telegram</h4><p>Blake receives all notifications and approves deals via Telegram. You may be added to a team channel for communication.</p></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">☁️</div>
+      <div><h4>Google Workspace</h4><p>Company email, calendar, and documents all run on Google Workspace under the thestuffbuyers.com domain.</p></div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">About Cyclops</h3>
+  <div class="callout reveal">
+    <div class="callout-label" style="color: var(--gold);">🤖 Internal System</div>
+    <p>Cyclops is the name of our internal deal pipeline engine. It runs in the background, automating deal tracking, notifications, email parsing, and stage management. You do not need to operate Cyclops directly — just know it exists and it's the reason the system works as smoothly as it does.</p>
+  </div>
+</section>
+
+<!-- 9. DO'S AND DON'TS -->
+<section class="section reveal" id="rules">
+  <div class="section-number">09</div>
+  <h2 class="section-title">Do's and Don'ts</h2>
+  <div class="section-rule"></div>
+
+  <div class="do-dont reveal">
+    <div class="do-col">
+      <h3>✓ Do</h3>
+      <ul>
+        <li>Be friendly, direct, and professional in every interaction</li>
+        <li>Submit deals the same day you collect the information — speed matters</li>
+        <li>Double-check all contact information before submitting (especially emails)</li>
+        <li>Hand out flyers and business cards to everyone at trade shows — no exceptions</li>
+        <li>Ask for specifics: product type, quantity, condition, location</li>
+        <li>Use the web form whenever possible for the most reliable data entry</li>
+        <li>Keep your phone charged and the web form bookmarked or installed as an app</li>
+        <li>Follow up with Blake or the team lead if you encounter an unusual situation</li>
+        <li>Represent the brand with confidence — you are the face of TSB in the field</li>
+      </ul>
+    </div>
+    <div class="dont-col">
+      <h3>✗ Don't</h3>
+      <ul>
+        <li>Never promise a specific price or timeline — we do not set prices, BidFTA does</li>
+        <li>Never share a seller's contact info with BidFTA or any third party</li>
+        <li>Never skip someone at a trade show because they "don't look like they have inventory"</li>
+        <li>Never leave collected lead information unsubmitted at the end of the day</li>
+        <li>Never speak negatively about competitors — focus on our value proposition</li>
+        <li>Never make up answers — say "Let me get that answer for you" and follow up</li>
+        <li>Never discuss internal systems, AI tech, or pipeline automation with outsiders — that is proprietary</li>
+        <li>Never use personal email for business communication — always use @thestuffbuyers.com</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 10. QUICK REFERENCE -->
+<section class="section reveal" id="quickref">
+  <div class="section-number">10</div>
+  <h2 class="section-title">Quick Reference Card</h2>
+  <div class="section-rule"></div>
+  <p class="section-intro">Screenshot this or bookmark this page. Everything you need at a glance.</p>
+
+  <div class="quick-ref reveal">
+    <h3>⚡ At a Glance</h3>
+    <div class="ref-grid">
+      <div class="ref-col">
+        <h4>Company Info</h4>
+        <div class="ref-row"><span class="label">Company</span><span class="value">The Stuff Buyers LLC</span></div>
+        <div class="ref-row"><span class="label">Website</span><span class="value">thestuffbuyers.com</span></div>
+        <div class="ref-row"><span class="label">Intake Form</span><span class="value">thestuffbuyers.com/intake-form</span></div>
+        <div class="ref-row"><span class="label">Quotes Email</span><span class="value">quotes@thestuffbuyers.com</span></div>
+        <div class="ref-row"><span class="label">Sales Email</span><span class="value">sales@thestuffbuyers.com</span></div>
+        <div class="ref-row"><span class="label">Phone</span><span class="value">(314) 358-5293</span></div>
+        <div class="ref-row"><span class="label">Managing Director</span><span class="value">Blake Harris</span></div>
+        <div class="ref-row"><span class="label">Tagline</span><span class="value">Easy. Simple. Fast.</span></div>
+        <div class="ref-row"><span class="label">Auction Partner</span><span class="value">BidFTA (30+ locations)</span></div>
+      </div>
+      <div class="ref-col">
+        <h4>Trade Show Checklist</h4>
+        <div class="checklist-item"><div class="box">☐</div> Business cards restocked</div>
+        <div class="checklist-item"><div class="box">☐</div> Flyers restocked</div>
+        <div class="checklist-item"><div class="box">☐</div> Phone charged</div>
+        <div class="checklist-item"><div class="box">☐</div> Web form bookmarked / installed</div>
+        <div class="checklist-item"><div class="box">☐</div> Notepad or notes app ready</div>
+        <div class="checklist-item"><div class="box">☐</div> Know the elevator pitch by heart</div>
+        <div class="checklist-item"><div class="box">☐</div> Walk every aisle, visit every booth</div>
+        <div class="checklist-item"><div class="box">☐</div> Submit all leads before end of day</div>
+
+        <h4 style="margin-top: 1.5rem;">The 7 Required Fields</h4>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">1</div> Contact Name</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">2</div> Company Name</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">3</div> Email Address</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">4</div> Phone Number</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">5</div> Item Description</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">6</div> Est. Quantity</div>
+        <div class="checklist-item"><div class="box" style="border-color: var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 700;">7</div> Location</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand">The Stuff Buyers</div>
+  <div class="footer-tagline">Easy. Simple. Fast.</div>
+  <p class="footer-contact">
+    <a href="https://thestuffbuyers.com">thestuffbuyers.com</a> &nbsp;•&nbsp;
+    <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> &nbsp;•&nbsp;
+    (314) 358-5293
+  </p>
+</footer>
+
+<script>
+// FAQ Accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+// Scroll Reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

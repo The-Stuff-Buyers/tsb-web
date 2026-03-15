@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   validateSubmission,
   CONDITIONS,
   INDUSTRY_TYPES,
   MAX_LENGTHS,
 } from "@/lib/validation";
+import { enqueue, getQueueStatus, retryAll, discardRecord } from "@/lib/offlineQueue";
+import { purgeOldFailed } from "@/lib/offlineDb";
+import { isOnline } from "@/lib/connectivity";
+import QueueStatusBanner from "./QueueStatusBanner";
 
 // Display name → slug mapping per Appendix B
 const CATEGORIES: { label: string; slug: string }[] = [
@@ -90,9 +94,106 @@ export default function IntakeForm() {
   const [warnings, setWarnings] = useState<Record<number, Record<string, string>>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [globalError, setGlobalError] = useState("");
+  const [bannerStatus, setBannerStatus] = useState<
+    "queued" | "retrying" | "success" | "partial" | "failed" | "pending" | null
+  >(null);
+  const [bannerCounts, setBannerCounts] = useState({
+    itemCount: 0,
+    sentCount: 0,
+    failedCount: 0,
+  });
 
   const submitBtnRef = useRef<HTMLButtonElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+
+  // ── Form reset ─────────────────────────────────────────────────
+
+  function resetForm() {
+    setContact({ contact_name: "", email: "", phone: "", company_name: "", website: "", industry_type: "" });
+    setItems(initialItems());
+    setActiveTab(0);
+    setErrors({});
+    setWarnings({});
+    setGlobalError("");
+    setStatus("idle");
+  }
+
+  // ── Queue banner helpers ────────────────────────────────────────
+
+  async function applyRetryResult(sent: number, failed: number) {
+    const qs = await getQueueStatus();
+    const activePending = qs.pending + qs.retrying;
+    if (sent > 0 && failed === 0 && activePending === 0) {
+      setBannerStatus("success");
+      setBannerCounts({ itemCount: sent, sentCount: sent, failedCount: 0 });
+    } else if (sent > 0 && failed > 0) {
+      setBannerStatus("partial");
+      setBannerCounts({ itemCount: sent + failed, sentCount: sent, failedCount: failed });
+    } else if (failed > 0) {
+      setBannerStatus("failed");
+      setBannerCounts({ itemCount: failed, sentCount: 0, failedCount: failed });
+    } else if (activePending > 0) {
+      setBannerStatus("pending");
+      setBannerCounts({ itemCount: activePending, sentCount: 0, failedCount: 0 });
+    } else {
+      setBannerStatus(null);
+    }
+  }
+
+  async function tryRetry() {
+    const qs = await getQueueStatus();
+    if (qs.pending === 0 && qs.retrying === 0) return;
+    const online = await isOnline();
+    if (!online) return;
+    setBannerStatus("retrying");
+    const result = await retryAll();
+    await applyRetryResult(result.sent, result.failed);
+  }
+
+  // ── Mount effect ────────────────────────────────────────────────
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    async function init() {
+      purgeOldFailed().catch(() => {});
+
+      const qs = await getQueueStatus();
+      if (qs.total > 0) {
+        if (qs.failed > 0 && qs.pending === 0 && qs.retrying === 0) {
+          setBannerStatus("failed");
+          setBannerCounts({ itemCount: qs.failed, sentCount: 0, failedCount: qs.failed });
+        } else if (qs.pending > 0 || qs.retrying > 0) {
+          setBannerStatus("pending");
+          setBannerCounts({ itemCount: qs.pending + qs.retrying, sentCount: 0, failedCount: 0 });
+        }
+      }
+
+      await tryRetry();
+
+      intervalId = setInterval(async () => {
+        if (document.visibilityState !== "visible") return;
+        const current = await getQueueStatus();
+        if (current.pending === 0 && current.retrying === 0) return;
+        await tryRetry();
+      }, 30_000);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        tryRetry();
+      }
+    }
+
+    init();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (intervalId) clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Error helpers ──────────────────────────────────────────────
 
@@ -254,46 +355,56 @@ export default function IntakeForm() {
 
     setStatus("submitting");
 
-    try {
-      let payload: Record<string, unknown>;
+    // Build payload outside try so it's accessible in catch for offline queuing
+    let payload: Record<string, unknown>;
+    if (activeTabs.length === 1) {
+      // Single-item flat payload — backward compatible
+      const itemData = items[0];
+      const quantityInt = itemData.quantity ? parseInt(itemData.quantity, 10) : NaN;
+      payload = {
+        ...contact,
+        item_name: itemData.item_name,
+        description: itemData.description,
+        condition: itemData.condition,
+        quantity: isNaN(quantityInt) ? itemData.quantity : quantityInt,
+        product_category: itemData.product_category,
+        location: itemData.location,
+        upc: itemData.upc,
+        no_upc: itemData.no_upc,
+        seller_estimated_value: itemData.seller_estimated_value,
+      };
+    } else {
+      // Multi-item payload
+      payload = {
+        ...contact,
+        items: activeTabs.map((tabIdx) => {
+          const d = items[tabIdx];
+          return {
+            item_name: d.item_name,
+            description: d.description,
+            condition: d.condition,
+            quantity: parseInt(d.quantity, 10) || 0,
+            product_category: d.product_category,
+            location: d.location,
+            upc: d.upc,
+            no_upc: d.no_upc,
+            seller_estimated_value: d.seller_estimated_value,
+          };
+        }),
+      };
+    }
 
-      if (activeTabs.length === 1) {
-        // Single-item flat payload — backward compatible
-        const itemData = items[0];
-        const quantityInt = itemData.quantity ? parseInt(itemData.quantity, 10) : NaN;
-        payload = {
-          ...contact,
-          item_name: itemData.item_name,
-          description: itemData.description,
-          condition: itemData.condition,
-          quantity: isNaN(quantityInt) ? itemData.quantity : quantityInt,
-          product_category: itemData.product_category,
-          location: itemData.location,
-          upc: itemData.upc,
-          no_upc: itemData.no_upc,
-          seller_estimated_value: itemData.seller_estimated_value,
-        };
-      } else {
-        // Multi-item payload
-        payload = {
-          ...contact,
-          items: activeTabs.map((tabIdx) => {
-            const d = items[tabIdx];
-            return {
-              item_name: d.item_name,
-              description: d.description,
-              condition: d.condition,
-              quantity: parseInt(d.quantity, 10) || 0,
-              product_category: d.product_category,
-              location: d.location,
-              upc: d.upc,
-              no_upc: d.no_upc,
-              seller_estimated_value: d.seller_estimated_value,
-            };
-          }),
-        };
+    async function registerSync() {
+      if ("serviceWorker" in navigator && "SyncManager" in window) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (reg as any).sync.register("sync-tsb-submissions");
+        } catch {}
       }
+    }
 
+    try {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -310,6 +421,16 @@ export default function IntakeForm() {
       }
 
       if (!res.ok) {
+        // 503 means the service worker intercepted while offline — queue it
+        if (res.status === 503) {
+          await enqueue(payload);
+          setBannerStatus("queued");
+          resetForm();
+          if (submitBtnRef.current) submitBtnRef.current.disabled = false;
+          await registerSync();
+          return;
+        }
+
         if (data.itemErrors) {
           // Multi-item server errors — map item indices back to tab indices
           const serverErrors: Record<number, Record<string, string>> = {};
@@ -344,9 +465,12 @@ export default function IntakeForm() {
 
       setStatus("success");
     } catch {
-      setGlobalError("Network error. Please check your connection and try again.");
-      setStatus("error");
+      // Network failure — save to offline queue, reset form, show banner
+      await enqueue(payload);
+      setBannerStatus("queued");
+      resetForm();
       if (submitBtnRef.current) submitBtnRef.current.disabled = false;
+      await registerSync();
     }
   }
 
@@ -423,6 +547,32 @@ export default function IntakeForm() {
           autoComplete="off"
         />
       </div>
+
+      {/* ── Queue status banner ── */}
+      <QueueStatusBanner
+        status={bannerStatus}
+        itemCount={bannerCounts.itemCount}
+        sentCount={bannerCounts.sentCount}
+        failedCount={bannerCounts.failedCount}
+        onRetry={async () => {
+          setBannerStatus("retrying");
+          const result = await retryAll();
+          await applyRetryResult(result.sent, result.failed);
+        }}
+        onDiscard={async () => {
+          const qs = await getQueueStatus();
+          await Promise.all(
+            qs.records.filter((r) => r.status === "failed").map((r) => discardRecord(r.id))
+          );
+          const updated = await getQueueStatus();
+          if (updated.total === 0) {
+            setBannerStatus(null);
+          } else if (updated.pending > 0 || updated.retrying > 0) {
+            setBannerStatus("pending");
+            setBannerCounts({ itemCount: updated.pending + updated.retrying, sentCount: 0, failedCount: 0 });
+          }
+        }}
+      />
 
       {/* ── YOUR INFO ── */}
       <div className="mb-8">

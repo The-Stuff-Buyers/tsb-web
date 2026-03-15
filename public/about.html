@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Stuff Buyers — Company Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal: #1A1A1A;
+  --charcoal-deep: #0F0F0F;
+  --charcoal-mid: #2A2A2A;
+  --charcoal-light: #3A3A3A;
+  --gold: #C9A84C;
+  --gold-bright: #D4AF37;
+  --gold-muted: #A08735;
+  --cream: #F5F0E8;
+  --cream-dark: #D9D0C1;
+  --white: #FFFFFF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--charcoal-deep);
+  color: var(--cream);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── HEADER ─── */
+.header {
+  text-align: center;
+  padding: 5rem 2rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 99px, rgba(201,168,76,0.025) 99px, rgba(201,168,76,0.025) 100px),
+    repeating-linear-gradient(90deg, transparent, transparent 99px, rgba(201,168,76,0.025) 99px, rgba(201,168,76,0.025) 100px);
+  pointer-events: none;
+}
+.header h1 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  position: relative;
+}
+.header h1 .gold { color: var(--gold); }
+.header .tagline {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0.8rem 0 1.5rem;
+}
+.header .subtitle {
+  font-size: 1rem;
+  color: var(--cream-dark);
+  max-width: 560px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ─── CONTAINER ─── */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ─── SECTIONS ─── */
+.section {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--charcoal-mid);
+}
+.section-label {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+.section-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin-bottom: 0.4rem;
+}
+.section-rule {
+  width: 50px;
+  height: 3px;
+  background: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.section p {
+  color: var(--cream-dark);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 720px;
+}
+.section p + p { margin-top: 0.8rem; }
+
+/* ─── CARDS GRID ─── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.card {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  padding: 1.5rem;
+  transition: border-color 0.3s;
+}
+.card:hover { border-color: var(--gold-muted); }
+.card .icon {
+  font-size: 1.3rem;
+  margin-bottom: 0.8rem;
+}
+.card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+.card p {
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── WORKFLOW STEPS ─── */
+.workflow {
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.workflow::before {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--gold-muted) 0, var(--gold-muted) 6px,
+    transparent 6px, transparent 12px
+  );
+}
+.wf-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 1rem 0;
+  position: relative;
+}
+.wf-dot {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: var(--charcoal);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--gold);
+  z-index: 1;
+}
+.wf-dot.highlight {
+  background: var(--gold);
+  color: var(--charcoal-deep);
+}
+.wf-content h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin-bottom: 0.2rem;
+}
+.wf-content p {
+  font-size: 0.88rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── PROMISE BANNER ─── */
+.promise {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-muted) 100%);
+  color: var(--charcoal-deep);
+  padding: 2.5rem;
+  text-align: center;
+  margin: 2rem 0;
+  position: relative;
+}
+.promise::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(15,15,15,0.12);
+}
+.promise h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.promise p {
+  font-size: 0.92rem;
+  max-width: 480px;
+  margin: 0 auto;
+  opacity: 0.85;
+}
+
+/* ─── PITCH BOX ─── */
+.pitch-box {
+  background: var(--charcoal);
+  border: 2px solid var(--gold-muted);
+  padding: 2rem 2.5rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+.pitch-box::before {
+  content: '\201C';
+  font-family: 'Oswald', sans-serif;
+  font-size: 5rem;
+  color: var(--gold);
+  opacity: 0.15;
+  position: absolute;
+  top: -0.2rem;
+  left: 1rem;
+  line-height: 1;
+}
+.pitch-box p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--cream);
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── KEY MESSAGES ─── */
+.key-msg {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.2rem;
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  margin-bottom: 0.6rem;
+}
+.key-msg .bullet {
+  color: var(--gold);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  min-width: 20px;
+  padding-top: 2px;
+}
+.key-msg h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--white);
+  margin-bottom: 0.2rem;
+}
+.key-msg p {
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+  line-height: 1.55;
+}
+
+/* ─── FAQ ─── */
+.faq-item {
+  background: var(--charcoal);
+  border: 1px solid var(--charcoal-light);
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+.faq-q {
+  padding: 1rem 1.2rem;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cream);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.2s;
+}
+.faq-q:hover { color: var(--gold); }
+.faq-q .toggle {
+  font-size: 1.2rem;
+  color: var(--gold);
+  transition: transform 0.3s;
+}
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.faq-a-inner {
+  padding: 0 1.2rem 1rem;
+  font-size: 0.88rem;
+  color: var(--cream-dark);
+  line-height: 1.6;
+}
+
+/* ─── CONTACT FOOTER ─── */
+.contact-bar {
+  text-align: center;
+  padding: 3rem 2rem;
+  border-top: 1px solid var(--charcoal-mid);
+}
+.contact-bar .brand {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.3rem;
+}
+.contact-bar .tagline-sm {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 300;
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--cream-dark);
+  margin-bottom: 1.2rem;
+}
+.contact-details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--cream-dark);
+}
+.contact-details a {
+  color: var(--cream);
+  text-decoration: none;
+}
+.contact-details a:hover { color: var(--gold); }
+.contact-details span.sep {
+  color: var(--charcoal-light);
+}
+
+@media (max-width: 768px) {
+  .header { padding: 4rem 1.5rem 2.5rem; }
+  .container { padding: 0 1.5rem; }
+  .section { padding: 2.5rem 0; }
+  .promise { padding: 2rem 1.5rem; }
+  .promise h3 { font-size: 1.5rem; letter-spacing: 0.2em; }
+  .contact-details { flex-direction: column; gap: 0.5rem; }
+  .contact-details span.sep { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>THE <span class="gold">STUFF</span> BUYERS</h1>
+  <p class="tagline">Easy. Simple. Fast.</p>
+  <p class="subtitle">Wholesale inventory liquidation brokerage — helping businesses move excess, surplus, and closeout inventory quickly and painlessly.</p>
+</div>
+
+<div class="container">
+
+  <!-- WHO WE ARE -->
+  <div class="section">
+    <div class="section-label">About Us</div>
+    <h2 class="section-title">Who We Are</h2>
+    <div class="section-rule"></div>
+    <p>The Stuff Buyers LLC is a wholesale inventory acquisition and liquidation brokerage based in Texas. We connect businesses that have excess, surplus, overstock, discontinued, closeout, or unwanted inventory with buyers who will purchase that inventory in bulk.</p>
+    <p>Think of us as the bridge between a company that has a warehouse full of product they need to move and a nationwide network of auction and resale buyers ready to buy it. We broker the deal and make the connection as fast and painless as possible for the seller.</p>
+  </div>
+
+  <!-- WHAT WE HANDLE -->
+  <div class="section">
+    <div class="section-label">Scope</div>
+    <h2 class="section-title">What We Handle</h2>
+    <div class="section-rule"></div>
+    <div class="card-grid">
+      <div class="card"><div class="icon">📦</div><h4>Excess & Overstock</h4><p>Inventory from retailers, wholesalers, and manufacturers that exceeds current demand.</p></div>
+      <div class="card"><div class="icon">🏷️</div><h4>Closeouts & Discontinued</h4><p>Product lines being retired, rebranded, or replaced with newer models.</p></div>
+      <div class="card"><div class="icon">🏭</div><h4>Warehouse Cleanouts</h4><p>Full-facility liquidations for businesses moving, closing, or restructuring.</p></div>
+      <div class="card"><div class="icon">🔄</div><h4>Seasonal & Returns</h4><p>Seasonal surplus and returned merchandise that needs to move quickly.</p></div>
+      <div class="card"><div class="icon">🔧</div><h4>Equipment & Fixtures</h4><p>Business assets, fixtures, and equipment that companies need to offload.</p></div>
+      <div class="card"><div class="icon">✦</div><h4>Virtually Anything</h4><p>If a business needs to move it out of their space, we are the people to talk to.</p></div>
+    </div>
+  </div>
+
+  <!-- OUR PARTNER -->
+  <div class="section">
+    <div class="section-label">Our Network</div>
+    <h2 class="section-title">Our Partner: BidFTA</h2>
+    <div class="section-rule"></div>
+    <p>BidFTA (Fast Track Auctions) is our primary liquidation auction partner. They operate a nationwide online auction marketplace with 30+ warehouse locations, specializing in liquidation, returns, overstock, and surplus inventory. Their buyer network includes resellers, small businesses, bargain retailers, and bin store operators.</p>
+    <p>When inventory enters our pipeline, BidFTA evaluates it and provides pricing. We review and relay the offer to the seller. All communication between the seller and BidFTA flows through us — we protect seller relationships at every step.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <div class="section-label">The Workflow</div>
+    <h2 class="section-title">How It Works</h2>
+    <div class="section-rule"></div>
+    <p>Every deal follows the same straightforward process. Getting a quote is free, fast, and comes with zero obligation.</p>
+
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-dot">01</div>
+        <div class="wf-content">
+          <h4>Submit Your Inventory</h4>
+          <p>Tell us what you have — product type, quantity, condition, and location. Submit via our website intake form, email, or in person.</p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot highlight">02</div>
+        <div class="wf-content">
+          <h4>We Review & Send to Our Auction Network</h4>
+          <p>Our team reviews your submission and sends the inventory details to BidFTA for evaluation and pricing.</p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot">03</div>
+        <div class="wf-content">
+          <h4>You Receive an Offer</h4>
+          <p>BidFTA responds with a price, timeline, and conditions. We review it for quality, then send it to you.</p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot highlight">04</div>
+        <div class="wf-content">
+          <h4>You Decide</h4>
+          <p>Accept the offer and we coordinate the rest. Decline, and there's no cost or obligation. Simple as that.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="promise">
+      <h3>Easy. Simple. Fast.</h3>
+      <p>Every interaction, every quote, and every step of the process is designed to minimize your effort and maximize your speed to resolution.</p>
+    </div>
+  </div>
+
+  <!-- THE PITCH -->
+  <div class="section">
+    <div class="section-label">In Our Words</div>
+    <h2 class="section-title">What We Tell People</h2>
+    <div class="section-rule"></div>
+
+    <div class="pitch-box">
+      <p>"We're The Stuff Buyers. We help businesses liquidate their excess, overstock, closeout, and surplus inventory. If you've got a warehouse full of product you need to move, we connect you with buyers who will take it off your hands — fast. We handle the whole process for you. It's easy, simple, and fast."</p>
+    </div>
+
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"We buy stuff."</h4><p>The name says it all. If someone has stuff they need to get rid of, we are the people to talk to.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"Zero cost to get a quote."</h4><p>Submitting inventory for a quote costs nothing. There is no obligation. This removes the biggest barrier to entry.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"We handle everything."</h4><p>Once a seller says yes, we coordinate the entire process. They don't have to find buyers, post listings, or manage logistics.</p></div></div>
+    <div class="key-msg"><div class="bullet">▸</div><div><h4>"Nationwide auction network."</h4><p>Our partner BidFTA has 30+ locations. Real infrastructure. Real reach.</p></div></div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section">
+    <div class="section-label">Common Questions</div>
+    <h2 class="section-title">FAQ</h2>
+    <div class="section-rule"></div>
+
+    <div class="faq-item">
+      <div class="faq-q">"How much will I get for my inventory?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">That depends on the product, quantity, and condition. Getting a quote is completely free and usually takes just a couple of business days. Let's get your info submitted and find out.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"Do you buy everything?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">We handle a very wide range — from consumer goods and electronics to equipment, fixtures, and industrial surplus. The best way to find out is to submit it. No cost, no obligation.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"How does the process work?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">You give us the details on what you've got. We review it, send it to our auction network for pricing, and come back to you with an offer. If you like it, we move forward. If not, no hard feelings.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"Who buys the stuff?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Our auction partner sells to a network of thousands of buyers — resellers, small businesses, bargain retailers, and more. They specialize in moving volume quickly.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"What does it cost me?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Getting a quote costs nothing. If a deal closes, the terms are built into the offer — there are no hidden fees to you as the seller.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">"How fast can you move it?" <span class="toggle">+</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Timelines vary depending on size and type, but we typically get an initial quote back within a few business days. Once a deal is accepted, removal is coordinated quickly.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTACT FOOTER -->
+<div class="contact-bar">
+  <div class="brand">The Stuff Buyers</div>
+  <div class="tagline-sm">Easy. Simple. Fast.</div>
+  <div class="contact-details">
+    <span>thestuffbuyers.com</span>
+    <span class="sep">|</span>
+    <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a>
+    <span class="sep">|</span>
+    <a href="mailto:sales@thestuffbuyers.com">sales@thestuffbuyers.com</a>
+    <span class="sep">|</span>
+    <span>(314) 358-5293</span>
+    <span class="sep">|</span>
+    <span>Blake Harris, Managing Director</span>
+  </div>
+</div>
+
+<script>
+// FAQ toggle
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const a = q.nextElementSibling;
+    const toggle = q.querySelector('.toggle');
+    if (a.style.maxHeight) {
+      a.style.maxHeight = null;
+      toggle.textContent = '+';
+      toggle.style.transform = 'rotate(0)';
+    } else {
+      a.style.maxHeight = a.scrollHeight + 'px';
+      toggle.textContent = '−';
+      toggle.style.transform = 'rotate(180deg)';
+    }
+  });
+});
+</script>
+</body>
+</html>

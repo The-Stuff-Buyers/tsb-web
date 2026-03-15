@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tsb-v1';
+const CACHE_NAME = 'tsb-v2';
 const STATIC_ASSETS = ['/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -38,3 +38,45 @@ self.addEventListener('activate', (event) => {
   );
   self.clients.claim();
 });
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-tsb-submissions') {
+    event.waitUntil(syncSubmissions());
+  }
+});
+
+async function syncSubmissions() {
+  const DB_NAME = 'tsb-offline-queue';
+  const STORE = 'submissions';
+
+  const db = await new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  const records = await new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result);
+  });
+
+  const pending = records.filter(r => r.status === 'pending' || r.status === 'retrying');
+
+  for (const record of pending) {
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record.payload),
+      });
+      if (res.ok) {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).delete(record.id);
+        await new Promise(r => { tx.oncomplete = r; });
+      }
+    } catch (_) {
+      // Network still unavailable — SW will retry on next sync event
+    }
+  }
+}
