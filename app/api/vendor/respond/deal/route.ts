@@ -59,9 +59,9 @@ export async function GET(req: NextRequest) {
   // Fetch deal by deal_id string (not UUID)
   const { data: deal, error: dealErr } = await supabase
     .from('deals')
-    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, description, stage, submitted_at, categories(display_name)')
+    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, description, stage, submitted_at')
     .eq('deal_id', dealId)
-    .maybeSingle() as { data: { id: string; deal_id: string; item_name: string; condition: string | null; quantity: number; location_raw: string | null; category_id: string | null; description: string | null; stage: string; submitted_at: string | null; categories: { display_name?: string } | null } | null; error: unknown }
+    .maybeSingle() as { data: { id: string; deal_id: string; item_name: string; condition: string | null; quantity: number; location_raw: string | null; category_id: string | null; description: string | null; stage: string; submitted_at: string | null } | null; error: unknown }
 
   if (dealErr || !deal) {
     return NextResponse.json(
@@ -81,8 +81,16 @@ export async function GET(req: NextRequest) {
   // Build location string
   const location = deal.location_raw || 'N/A'
 
-  // Category display name
-  const category = (deal.categories as { display_name?: string } | null)?.display_name || 'N/A'
+  // Category display name — fetch separately to avoid join issues
+  let category = 'N/A'
+  if (deal.category_id) {
+    const { data: cat } = await supabase
+      .from('categories')
+      .select('display_name')
+      .eq('id', deal.category_id)
+      .maybeSingle() as { data: { display_name: string } | null }
+    if (cat?.display_name) category = cat.display_name
+  }
 
   // Calculate deadline: submitted_at + 36 hours
   let deadline = 'TBD'
