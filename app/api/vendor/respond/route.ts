@@ -15,6 +15,18 @@ function getSupabase() {
 const CYCLOPS_WEBHOOK_URL = process.env.CYCLOPS_WEBHOOK_URL || 'http://localhost:3001'
 const CYCLOPS_WEBHOOK_SECRET = process.env.CYCLOPS_WEBHOOK_SECRET
 
+// Canonical offer type resolver — maps web form payment_structure values to DB enum (consignment | cash | both).
+// Canonical version lives in cyclops-pipeline/src/bidfta.js → resolveOfferType. Keep in sync.
+function resolveOfferType(paymentStructure: string | null | undefined): 'cash' | 'consignment' | 'both' | null {
+  if (!paymentStructure) return null
+  const ps = paymentStructure.toLowerCase().trim()
+  if (ps.startsWith('consignment')) return 'consignment'
+  if (ps === 'both') return 'both'
+  // cash_purchase, net_30, net_60, other → all cash-structure variants
+  // payment terms (net_30/net_60) are preserved in the payment_structure column
+  return 'cash'
+}
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>
   try {
@@ -87,14 +99,25 @@ export async function POST(req: NextRequest) {
 
   try {
     // 3. Update the pending quote row
-    // Map form offer_type values to DB enum (consignment | cash | both)
-    let mappedOfferType: string | null = null
-    if (offer_type) {
-      const ot = offer_type.toLowerCase()
-      if (ot.startsWith('consignment')) mappedOfferType = 'consignment'
-      else if (ot === 'cash_purchase' || ot === 'cash') mappedOfferType = 'cash'
-      else if (ot === 'both') mappedOfferType = 'both'
-    }
+    const mappedOfferType = resolveOfferType(offer_type)
+
+    // Parse numeric fields up front so expected_recovery can be derived cleanly
+    const parsedCashOfferPerUnit = cash_offer_per_unit
+      ? parseFloat(String(cash_offer_per_unit).replace(/[^0-9.]/g, '')) || null
+      : null
+    const parsedCashOfferTotal = cash_offer_total
+      ? parseFloat(String(cash_offer_total).replace(/[^0-9.]/g, '')) || null
+      : null
+    const parsedConsignmentReturn = consignment_return
+      ? parseFloat(String(consignment_return).replace(/[^0-9.]/g, '')) || null
+      : null
+
+    // Derive expected_recovery at write time — never at send time.
+    // consignment: use consignment_return; cash/net variants: use cash_offer_total; both: cash_offer_total is guaranteed floor.
+    let expectedRecovery: number | null = null
+    if (mappedOfferType === 'consignment') expectedRecovery = parsedConsignmentReturn
+    else if (mappedOfferType === 'cash') expectedRecovery = parsedCashOfferTotal
+    else if (mappedOfferType === 'both') expectedRecovery = parsedCashOfferTotal
 
     const quoteUpdate: Record<string, unknown> = {
       status: 'received',
@@ -102,15 +125,12 @@ export async function POST(req: NextRequest) {
       raw_response: body,
       offer_type: mappedOfferType,
       quantity_offered: parseInt(String(quantity_offered), 10) || null,
-      cash_offer_per_unit: cash_offer_per_unit
-        ? parseFloat(String(cash_offer_per_unit).replace(/[^0-9.]/g, '')) || null
-        : null,
-      cash_offer_total: cash_offer_total
-        ? parseFloat(String(cash_offer_total).replace(/[^0-9.]/g, '')) || null
-        : null,
-      consignment_return: consignment_return
-        ? parseFloat(String(consignment_return).replace(/[^0-9.]/g, '')) || null
-        : null,
+      // TODO: when BidFTA begins quoting on pallets/lots, add quantity_type as a field on the vendor response form and remove this default.
+      quantity_type: 'unit',
+      cash_offer_per_unit: parsedCashOfferPerUnit,
+      cash_offer_total: parsedCashOfferTotal,
+      consignment_return: parsedConsignmentReturn,
+      expected_recovery: expectedRecovery,
       pickup_logistics: pickup_logistics || null,
       expected_pickup_date: pickup_date || null,
       payment_structure: offer_type || null,
