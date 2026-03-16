@@ -114,6 +114,24 @@ function VendorRespondPage() {
     }
   }, [cashPerUnit, quantityOffered])
 
+  // Auto-calc consignment return from total inventory value × split %
+  // Parses split directly from enum string: consignment_XX_YY → XX/100
+  useEffect(() => {
+    if (!isConsignment) {
+      setConsignmentReturn('')
+      return
+    }
+    const match = offerType.match(/consignment_(\d+)_(\d+)/)
+    const splitPercent = match ? parseInt(match[1]) / 100 : null
+    if (splitPercent === null) return
+    const total = parseFloat(cashTotal.replace(/[^0-9.]/g, ''))
+    if (!isNaN(total) && total > 0) {
+      setConsignmentReturn(formatUSD(String(total * splitPercent)))
+    } else {
+      setConsignmentReturn('')
+    }
+  }, [cashTotal, offerType, isConsignment])
+
   // Fetch deal data
   useEffect(() => {
     if (!dealParam || !tokenParam) {
@@ -332,14 +350,14 @@ function VendorRespondPage() {
                     />
                   </div>
                   <div className="form-row">
-                    <label className="form-label">Cash Offer Total</label>
+                    <label className="form-label">{isConsignment ? 'Total Inventory Value' : 'Cash Offer Total'}</label>
                     <input
                       type="text"
                       className="form-control"
                       value={cashTotal}
                       onChange={(e) => setCashTotal(e.target.value)}
                       onBlur={() => cashTotal && setCashTotal(formatUSD(cashTotal))}
-                      placeholder="Auto-calculates or enter manually"
+                      placeholder={isConsignment ? 'Gross auction estimate' : 'Auto-calculates or enter manually'}
                     />
                   </div>
                 </div>
@@ -475,7 +493,7 @@ function ErrorState({ message }: { message: string }) {
       <div className="state-heading">Link Invalid</div>
       <div className="state-text">{message}</div>
       <div className="state-contact">
-        Need help? Contact <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> or call <a href="tel:3143585293">(314) 358-5293</a>
+        Need help? Contact <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> or call <a href="tel:8889872927">(888) 987-2927</a>
       </div>
     </div>
   )
@@ -491,7 +509,7 @@ function AlreadySubmittedState({ dealId }: { dealId: string }) {
         A quote has already been submitted for deal {dealId}. If you need to update your response, please contact us directly.
       </div>
       <div className="state-contact">
-        <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:3143585293">(314) 358-5293</a>
+        <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:8889872927">(888) 987-2927</a>
       </div>
     </div>
   )
@@ -508,7 +526,7 @@ function ConfirmationState({ dealId }: { dealId: string }) {
         The Stuff Buyers team will review and be in touch.
       </div>
       <div className="state-contact">
-        Questions? <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:3143585293">(314) 358-5293</a>
+        Questions? <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a> · <a href="tel:8889872927">(888) 987-2927</a>
       </div>
     </div>
   )
