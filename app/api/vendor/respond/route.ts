@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     // Derive expected_recovery at write time — never at send time.
     // consignment: use consignment_return; cash/net variants: use cash_offer_total; both: cash_offer_total is guaranteed floor.
     let expectedRecovery: number | null = null
-    if (mappedOfferType === 'consignment') expectedRecovery = parsedConsignmentReturn
+    if (mappedOfferType === 'consignment') expectedRecovery = parsedConsignmentReturn ?? parsedCashOfferTotal
     else if (mappedOfferType === 'cash') expectedRecovery = parsedCashOfferTotal
     else if (mappedOfferType === 'both') expectedRecovery = parsedCashOfferTotal
 
