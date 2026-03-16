@@ -12,8 +12,8 @@ export const SITE_CONFIG = {
   parentOrg: "Snowfield Enterprises LLC",
   slogan: "We Buy Stuff. The stuff you can't sell.",
   tagline: "Easy. Simple. Fast.",
-  phone: "(314) 358-5293",
-  phoneTel: "+13143585293",
+  phone: "888-987-2927",
+  phoneTel: "+18889872927",
   email: "quotes@thestuffbuyers.com",
   address: {
     street: "448 Cobblestone Way",

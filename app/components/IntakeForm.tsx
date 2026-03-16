@@ -481,7 +481,7 @@ export default function IntakeForm() {
       <div className="py-12">
         <p className="text-brand-gold text-2xl font-bold mb-2">Received.</p>
         <p className="text-brand-gray text-base">
-          We&apos;ll be in touch within 24–48 hours.
+          We&apos;ll be in touch within 2 business days.
         </p>
       </div>
     );

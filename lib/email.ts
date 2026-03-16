@@ -65,7 +65,7 @@ function emailLayout(bodyContent: string): string {
           <hr style="border:none;border-top:1px solid #222222;margin:28px 0 24px;">
           <p style="margin:0;font-size:13px;color:#666666;line-height:1.7;">
             The Stuff Buyers team<br>
-            <a href="mailto:quotes@thestuffbuyers.com" style="color:#C9A84C;text-decoration:none;">quotes@thestuffbuyers.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;(314) 358-5293
+            <a href="mailto:quotes@thestuffbuyers.com" style="color:#C9A84C;text-decoration:none;">quotes@thestuffbuyers.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;888-987-2927
           </p>
         </td></tr>
       </table>
@@ -95,15 +95,15 @@ export async function sendSubmissionConfirmation(params: {
 
 ${itemLine}
 
-We'll get back to you within 24–48 hours with next steps.
+We'll get back to you within 2 business days with next steps.
 
 — The Stuff Buyers team
-quotes@thestuffbuyers.com | (314) 358-5293`
+quotes@thestuffbuyers.com | 888-987-2927`
 
   const html = emailLayout(`
     <h1 style="margin:0 0 20px;font-size:22px;color:#ffffff;font-weight:600;">Hi ${safeFirstName},</h1>
     <p style="margin:0 0 16px;font-size:16px;color:#cccccc;line-height:1.65;">${itemLine}</p>
-    <p style="margin:0;font-size:16px;color:#cccccc;line-height:1.65;">We'll get back to you within <strong style="color:#ffffff;">24–48 hours</strong> with next steps.</p>
+    <p style="margin:0;font-size:16px;color:#cccccc;line-height:1.65;">We'll get back to you within <strong style="color:#ffffff;">2 business days</strong> with next steps.</p>
   `)
 
   await sendResendEmail({
@@ -132,7 +132,7 @@ You can expect to hear back from us within 3–5 business days. We'll reach out 
 No action needed on your end.
 
 — The Stuff Buyers team
-quotes@thestuffbuyers.com | (314) 358-5293`
+quotes@thestuffbuyers.com | 888-987-2927`
 
   const html = emailLayout(`
     <h1 style="margin:0 0 20px;font-size:22px;color:#ffffff;font-weight:600;">Hi ${safeFirstName},</h1>
@@ -165,7 +165,7 @@ A quote has been prepared for your inventory and is currently under review by ou
 You'll hear from us shortly with the details.
 
 — The Stuff Buyers team
-quotes@thestuffbuyers.com | (314) 358-5293`
+quotes@thestuffbuyers.com | 888-987-2927`
 
   const html = emailLayout(`
     <h1 style="margin:0 0 20px;font-size:22px;color:#ffffff;font-weight:600;">Hi ${safeFirstName},</h1>

@@ -105,7 +105,7 @@ export async function GET(request: Request) {
             }}
           />
           <div style={{ fontSize: "18px", color: "#666666" }}>
-            (314) 358-5293
+            888-987-2927
           </div>
           <div
             style={{

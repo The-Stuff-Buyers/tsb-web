@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   if (body.company_url) {
     return NextResponse.json({
       success: true,
-      message: "Received. We'll be in touch within 24–48 hours.",
+      message: "Received. We'll be in touch within 2 business days.",
     })
   }
 
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
   if (existing && existing.length > 0) {
     return NextResponse.json({
       success: true,
-      message: "Received. We'll be in touch within 24–48 hours.",
+      message: "Received. We'll be in touch within 2 business days.",
     })
   }
 
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
   // 9. Return success
   return NextResponse.json({
     success: true,
-    message: "Received. We'll be in touch within 24–48 hours.",
+    message: "Received. We'll be in touch within 2 business days.",
   })
 }
 
@@ -293,7 +293,7 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
 
   return NextResponse.json({
     success: true,
-    message: "Received. We'll be in touch within 24–48 hours.",
+    message: "Received. We'll be in touch within 2 business days.",
     items_accepted,
     items_duplicate,
   })
