@@ -127,7 +127,7 @@ export async function sendQuoteForwarded(params: {
 
 Good news — we've reviewed your submission and forwarded your items to our evaluation team for pricing.
 
-You can expect to hear back from us within 3–5 business days. We'll reach out directly once we have a quote ready.
+You can expect to hear back from us within 2 business days or less. We'll reach out directly once we have a quote ready.
 
 No action needed on your end.
 
@@ -137,7 +137,7 @@ quotes@thestuffbuyers.com | 888-987-2927`
   const html = emailLayout(`
     <h1 style="margin:0 0 20px;font-size:22px;color:#ffffff;font-weight:600;">Hi ${safeFirstName},</h1>
     <p style="margin:0 0 16px;font-size:16px;color:#cccccc;line-height:1.65;">Good news — we've reviewed your submission and forwarded your items to our evaluation team for pricing.</p>
-    <p style="margin:0 0 16px;font-size:16px;color:#cccccc;line-height:1.65;">You can expect to hear back from us within <strong style="color:#ffffff;">3–5 business days</strong>. We'll reach out directly once we have a quote ready.</p>
+    <p style="margin:0 0 16px;font-size:16px;color:#cccccc;line-height:1.65;">You can expect to hear back from us within <strong style="color:#ffffff;">2 business days or less</strong>. We'll reach out directly once we have a quote ready.</p>
     <p style="margin:0;font-size:16px;color:#cccccc;line-height:1.65;">No action needed on your end.</p>
   `)
 
