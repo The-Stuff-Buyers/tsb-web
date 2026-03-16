@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
     .eq('email', body.email as string)
     .eq('item_name', body.item_name as string)
     .eq('company_name', (body.company_name as string) ?? '')
+    .eq('location', (body.location as string) ?? '')
     .gte(
       'submitted_at',
       new Date(Date.now() - 5 * 60 * 1000).toISOString()
@@ -229,13 +230,14 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
   let items_duplicate = 0
 
   for (const item of items) {
-    // Dedup check per item
+    // Dedup check per item — location included so same item at two locations is NOT deduplicated
     const { data: existing } = await supabase
       .from('form_submissions')
       .select('id')
       .eq('email', body.email as string)
       .eq('item_name', item.item_name as string)
       .eq('company_name', (body.company_name as string) ?? '')
+      .eq('location', (item.location as string) ?? '')
       .gte('submitted_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
       .limit(1)
 
