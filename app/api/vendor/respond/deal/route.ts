@@ -109,8 +109,8 @@ export async function GET(req: NextRequest) {
   const vendorInfo: Record<string, { company: string; contact_name: string; email: string; phone: string }> = {
     bidfta: {
       company: 'BidFTA',
-      contact_name: 'Todd Prewitt',
-      email: 'todd@bidfta.com',
+      contact_name: 'Todd Pewitt',
+      email: 'todd.pewitt@bidfta.com',
       phone: '(615) 430-5271',
     },
   }
