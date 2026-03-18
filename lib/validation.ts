@@ -3,7 +3,7 @@
 // ── Constants ──────────────────────────────────────────────────────
 
 export const CONDITIONS = [
-  'New', 'Like New', 'Open Box', 'Damaged', 'Mixed', 'Unknown'
+  'New', 'Like New', 'Open Box', 'Refurbished', 'Damaged', 'Mixed', 'Unknown'
 ] as const;
 
 // Populated at build time from: SELECT slug FROM categories WHERE active = TRUE ORDER BY sort_order
