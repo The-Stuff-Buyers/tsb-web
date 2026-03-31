@@ -5,6 +5,15 @@ import { useSearchParams } from 'next/navigation'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+interface DealFile {
+  id: string
+  file_name: string
+  file_type: string
+  file_size: number
+  url: string
+  is_image: boolean
+}
+
 interface DealData {
   deal_id: string
   item_name: string
@@ -21,6 +30,7 @@ interface DealData {
     email: string
     phone: string
   }
+  files: DealFile[]
 }
 
 type PageState = 'loading' | 'form' | 'submitted' | 'already_submitted' | 'error'
@@ -151,7 +161,7 @@ function VendorRespondPage() {
           }
           return
         }
-        setDeal(data)
+        setDeal({ ...data, files: data.files || [] })
         setQuantityOffered(String(data.quantity))
         setPageState('form')
       })
@@ -281,6 +291,52 @@ function VendorRespondPage() {
                   )}
                 </div>
               </div>
+
+              {/* File Gallery — only shown when deal has attachments */}
+              {deal.files && deal.files.length > 0 && (
+                <div className="section">
+                  <div className="section-label">ATTACHED FILES ({deal.files.length})</div>
+                  <div className="file-gallery">
+                    {deal.files.map((f) =>
+                      f.is_image ? (
+                        <a
+                          key={f.id}
+                          href={f.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="file-card"
+                          title={f.file_name}
+                        >
+                          <div className="file-preview-img-wrap">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={f.url}
+                              alt={f.file_name}
+                              className="file-preview-img"
+                            />
+                          </div>
+                          <div className="file-card-name">{f.file_name}</div>
+                          <div className="file-card-size">{(f.file_size / 1024).toFixed(0)} KB</div>
+                        </a>
+                      ) : (
+                        <a
+                          key={f.id}
+                          href={f.url}
+                          download={f.file_name}
+                          className="file-card file-card-doc"
+                          title={f.file_name}
+                        >
+                          <div className="file-doc-icon">
+                            {f.file_type.includes('pdf') ? '📄' : f.file_type.includes('csv') ? '📊' : '📋'}
+                          </div>
+                          <div className="file-card-name">{f.file_name}</div>
+                          <div className="file-card-size">{(f.file_size / 1024).toFixed(0)} KB · Download</div>
+                        </a>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Deadline Bar */}
               <div className="deadline-bar">
@@ -996,6 +1052,79 @@ const STYLES = `
     height: 14px;
     flex-shrink: 0;
     cursor: pointer;
+  }
+
+  /* ── File Gallery ────────────────────────────── */
+
+  .file-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .file-card {
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border: 1px solid #2e2e2e;
+    text-decoration: none;
+    color: #e8e8e8;
+    overflow: hidden;
+    transition: border-color 0.15s;
+    cursor: pointer;
+  }
+  .file-card:hover {
+    border-color: #C9A84C;
+  }
+  .file-preview-img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #0d0d0d;
+  }
+  .file-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .file-card-doc {
+    padding: 16px 12px;
+    align-items: center;
+    text-align: center;
+  }
+  .file-doc-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .file-card-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: #e8e8e8;
+    letter-spacing: 0.04em;
+    padding: 6px 8px 0;
+    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-card-doc .file-card-name {
+    padding: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+  .file-card-size {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: #666;
+    letter-spacing: 0.1em;
+    padding: 3px 8px 8px;
+    text-transform: uppercase;
+  }
+  .file-card-doc .file-card-size {
+    padding: 4px 0 0;
+    color: #C9A84C;
   }
 
   .field-disabled {

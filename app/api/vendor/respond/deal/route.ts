@@ -117,6 +117,37 @@ export async function GET(req: NextRequest) {
 
   const vendor = vendorInfo[tokenRow.vendor_name] || vendorInfo.bidfta
 
+  // Fetch deal attachments and generate 1-hour signed URLs
+  // IMPORTANT: deal_attachments.file_url stores a Supabase Storage PATH, not a URL.
+  // Always generate a signed URL before rendering — never use file_url directly.
+  const { data: attachments } = await supabase
+    .from('deal_attachments')
+    .select('id, file_name, file_type, file_size, file_url')
+    .eq('deal_id', deal.id)
+    .order('created_at', { ascending: true }) as {
+      data: { id: string; file_name: string; file_type: string; file_size: number; file_url: string }[] | null
+    }
+
+  const files = []
+  if (attachments && attachments.length > 0) {
+    for (const att of attachments) {
+      const { data: signedData } = await supabase.storage
+        .from('deal-attachments')
+        .createSignedUrl(att.file_url, 3600) // 1-hour expiry
+
+      if (signedData?.signedUrl) {
+        files.push({
+          id: att.id,
+          file_name: att.file_name,
+          file_type: att.file_type,
+          file_size: att.file_size,
+          url: signedData.signedUrl,
+          is_image: ['image/jpeg', 'image/png', 'image/webp', 'image/heic'].includes(att.file_type) || att.file_type === 'photo',
+        })
+      }
+    }
+  }
+
   return NextResponse.json({
     deal_id: deal.deal_id,
     item_name: deal.item_name,
@@ -128,5 +159,6 @@ export async function GET(req: NextRequest) {
     deadline,
     submitted_at: deal.submitted_to_bidfta || deal.created_at,
     vendor,
+    files,
   })
 }

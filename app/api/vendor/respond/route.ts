@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
           await fetch(`${CYCLOPS_WEBHOOK_URL}/webhook/bidfta-response`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CYCLOPS_WEBHOOK_SECRET}` },
-            body: JSON.stringify({ deal_id, offer_type: 'declined', resubmission_needed: resubmission_needed === 'true' || resubmission_needed === true, notes, vendor_company, vendor_contact, vendor_email, vendor_phone }),
+            body: JSON.stringify({ deal_id, offer_type: 'declined', resubmission_needed: resubmission_needed === 'true', notes, vendor_company, vendor_contact, vendor_email, vendor_phone }),
           })
         } catch (e) { console.error('[vendor/respond] Cyclops webhook failed (decline):', e) }
       }

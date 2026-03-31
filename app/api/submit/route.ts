@@ -131,6 +131,9 @@ export async function POST(req: NextRequest) {
   }
 
   // 7. Insert into form_submissions
+  const sessionId = body.session_id ? String(body.session_id) : null
+  const sessionItemNumber = body.session_item_number ? Number(body.session_item_number) : null
+
   const insertPayload = {
     contact_name: body.contact_name || null,
     company_name: body.company_name || null,
@@ -146,15 +149,19 @@ export async function POST(req: NextRequest) {
     product_category: body.product_category,
     industry_type: body.industry_type || null,
     source: 'web_form',
+    session_id: sessionId,
+    session_item_number: sessionItemNumber,
     raw_payload: body,
   }
 
   // Cast to never: supabase-js requires generated DB types; untyped client infers never for table rows
-  const { error: insertError } = await supabase
+  const { data: newSubmission, error: insertError } = await supabase
     .from('form_submissions')
     .insert(insertPayload as never)
+    .select('id')
+    .single() as { data: { id: string } | null; error: unknown }
 
-  if (insertError) {
+  if (insertError || !newSubmission) {
     console.error('Supabase insert error:', insertError)
     return NextResponse.json(
       {
@@ -162,6 +169,33 @@ export async function POST(req: NextRequest) {
       },
       { status: 500 }
     )
+  }
+
+  // 7b. Associate uploaded files with this submission
+  const rawFileIds = body.file_ids
+  if (Array.isArray(rawFileIds) && rawFileIds.length > 0) {
+    const validFileIds = (rawFileIds as unknown[])
+      .slice(0, 10)
+      .map(String)
+      .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+
+    if (validFileIds.length > 0) {
+      await supabase
+        .from('submission_files')
+        .update({ form_submission_id: newSubmission.id } as never)
+        .in('id', validFileIds)
+        .is('form_submission_id', null)
+
+      const { count } = await supabase
+        .from('submission_files')
+        .select('id', { count: 'exact', head: true })
+        .eq('form_submission_id', newSubmission.id)
+
+      await supabase
+        .from('form_submissions')
+        .update({ file_count: count || 0 } as never)
+        .eq('id', newSubmission.id)
+    }
   }
 
   // 8. Send confirmation email (awaited — Vercel kills void promises after response)
@@ -253,6 +287,9 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
       : null
     const quantity = parseInt(String(item.quantity), 10)
 
+    const sessionId = body.session_id ? String(body.session_id) : null
+    const sessionItemNumber = items_accepted + 1
+
     const insertPayload = {
       contact_name: body.contact_name || null,
       company_name: body.company_name || null,
@@ -269,17 +306,48 @@ async function handleMultiItem(body: Record<string, unknown>): Promise<NextRespo
       product_category: item.product_category,
       source: 'web_form',
       submission_group_id,
+      session_id: sessionId,
+      session_item_number: sessionItemNumber,
       raw_payload: body,
     }
 
-    const { error: insertError } = await supabase
+    const { data: newSub, error: insertError } = await supabase
       .from('form_submissions')
       .insert(insertPayload as never)
+      .select('id')
+      .single() as { data: { id: string } | null; error: unknown }
 
-    if (insertError) {
+    if (insertError || !newSub) {
       console.error('Supabase batch insert error:', insertError)
     } else {
       items_accepted++
+
+      // Associate file_ids with this item's submission
+      const rawFileIds = (item as Record<string, unknown>).file_ids
+      if (Array.isArray(rawFileIds) && rawFileIds.length > 0) {
+        const validFileIds = (rawFileIds as unknown[])
+          .slice(0, 10)
+          .map(String)
+          .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+
+        if (validFileIds.length > 0) {
+          await supabase
+            .from('submission_files')
+            .update({ form_submission_id: newSub.id } as never)
+            .in('id', validFileIds)
+            .is('form_submission_id', null)
+
+          const { count } = await supabase
+            .from('submission_files')
+            .select('id', { count: 'exact', head: true })
+            .eq('form_submission_id', newSub.id)
+
+          await supabase
+            .from('form_submissions')
+            .update({ file_count: count || 0 } as never)
+            .eq('id', newSub.id)
+        }
+      }
     }
   }
 

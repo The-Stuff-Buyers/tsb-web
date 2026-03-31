@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   validateSubmission,
   CONDITIONS,
@@ -52,6 +52,19 @@ type ItemState = {
   seller_estimated_value: string;
 };
 
+type UploadedFile = {
+  file_id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+  /** local preview URL (for images, from URL.createObjectURL) */
+  preview_url?: string;
+  /** upload progress 0–100, or 'done' | 'error' */
+  progress: number | "done" | "error";
+  error?: string;
+};
+
 const CONTACT_FIELDS = ["email", "contact_name", "phone", "company_name", "website", "industry_type"];
 
 function emptyItem(active = false): ItemState {
@@ -76,6 +89,14 @@ function initialItems(): Record<number, ItemState> {
   }
   return result;
 }
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 // ── Component ─────────────────────────────────────────────────────
 
@@ -103,19 +124,202 @@ export default function IntakeForm() {
     failedCount: 0,
   });
 
+  // ── File upload state ──────────────────────────────────────────
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [sessionItemNumber, setSessionItemNumber] = useState(1);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const submitBtnRef = useRef<HTMLButtonElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
 
+  // ── Session init ────────────────────────────────────────────────
+
+  useEffect(() => {
+    let sid = sessionStorage.getItem("tsb_session");
+    if (!sid) {
+      sid = crypto.randomUUID();
+      sessionStorage.setItem("tsb_session", sid);
+    }
+    setSessionId(sid);
+
+    const itemNum = parseInt(sessionStorage.getItem("tsb_session_item_number") || "1", 10);
+    setSessionItemNumber(isNaN(itemNum) ? 1 : itemNum);
+
+    // Fetch previously uploaded files for this session
+    if (sid) {
+      fetch(`/api/submit/session-files?session_id=${encodeURIComponent(sid)}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data: { files?: { file_id: string; file_name: string; file_type: string; file_size: number }[] } | null) => {
+          if (data?.files && data.files.length > 0) {
+            const restored: UploadedFile[] = data.files.map((f) => ({
+              file_id: f.file_id,
+              file_name: f.file_name,
+              file_type: f.file_type,
+              file_size: f.file_size,
+              storage_path: "",
+              progress: "done",
+            }));
+            setUploadedFiles(restored);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  // ── File upload helpers ─────────────────────────────────────────
+
+  const uploadFile = useCallback(async (file: File) => {
+    const tempId = crypto.randomUUID();
+    const previewUrl = IMAGE_TYPES.has(file.type) ? URL.createObjectURL(file) : undefined;
+
+    // Add placeholder entry with progress 0
+    setUploadedFiles((prev) => [
+      ...prev,
+      {
+        file_id: tempId,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        storage_path: "",
+        preview_url: previewUrl,
+        progress: 0,
+      },
+    ]);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    if (sessionId) formData.append("session_id", sessionId);
+
+    try {
+      // Use XMLHttpRequest for progress tracking
+      const result = await new Promise<{ file_id: string; file_name: string; storage_path: string; file_size: number; file_type: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/submit/upload");
+
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            setUploadedFiles((prev) =>
+              prev.map((f) => (f.file_id === tempId ? { ...f, progress: pct } : f))
+            );
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch {
+              reject(new Error("Invalid server response"));
+            }
+          } else {
+            try {
+              const errData = JSON.parse(xhr.responseText);
+              reject(new Error(errData.error || "Upload failed"));
+            } catch {
+              reject(new Error("Upload failed"));
+            }
+          }
+        });
+
+        xhr.addEventListener("error", () => reject(new Error("Network error")));
+        xhr.send(formData);
+      });
+
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.file_id === tempId
+            ? {
+                ...f,
+                file_id: result.file_id,
+                storage_path: result.storage_path,
+                progress: "done",
+              }
+            : f
+        )
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.file_id === tempId ? { ...f, progress: "error", error: msg } : f
+        )
+      );
+    }
+  }, [sessionId]);
+
+  const handleFilesSelected = useCallback(
+    (files: FileList | File[]) => {
+      const arr = Array.from(files);
+      for (const file of arr) {
+        uploadFile(file);
+      }
+    },
+    [uploadFile]
+  );
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) {
+      handleFilesSelected(e.target.files);
+      e.target.value = "";
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files) handleFilesSelected(e.dataTransfer.files);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(true);
+  }
+
+  function handleDragLeave() {
+    setIsDragOver(false);
+  }
+
+  function removeFile(fileId: string) {
+    setUploadedFiles((prev) => {
+      const f = prev.find((x) => x.file_id === fileId);
+      if (f?.preview_url) URL.revokeObjectURL(f.preview_url);
+      return prev.filter((x) => x.file_id !== fileId);
+    });
+  }
+
+  // Collect file_ids that finished uploading successfully
+  const doneFileIds = uploadedFiles
+    .filter((f) => f.progress === "done")
+    .map((f) => f.file_id);
+
   // ── Form reset ─────────────────────────────────────────────────
 
-  function resetForm() {
-    setContact({ contact_name: "", email: "", phone: "", company_name: "", website: "", industry_type: "" });
-    setItems(initialItems());
+  function resetItemFields() {
+    setItems((prev) => ({ ...prev, [0]: emptyItem(true) }));
+    for (let i = 1; i < 10; i++) {
+      setItems((prev) => ({ ...prev, [i]: emptyItem(false) }));
+    }
     setActiveTab(0);
     setErrors({});
     setWarnings({});
     setGlobalError("");
     setStatus("idle");
+    // Keep files for session reuse — don't clear uploadedFiles
+  }
+
+  function resetForm() {
+    setContact({ contact_name: "", email: "", phone: "", company_name: "", website: "", industry_type: "" });
+    resetItemFields();
+    setUploadedFiles([]);
+    sessionStorage.removeItem("tsb_session");
+    sessionStorage.removeItem("tsb_session_item_number");
+    const newSid = crypto.randomUUID();
+    sessionStorage.setItem("tsb_session", newSid);
+    setSessionId(newSid);
+    setSessionItemNumber(1);
   }
 
   // ── Queue banner helpers ────────────────────────────────────────
@@ -213,7 +417,6 @@ export default function IntakeForm() {
   ) {
     const { name, value } = e.target;
     setContact((prev) => ({ ...prev, [name]: value }));
-    // Contact errors live in errors[0]
     clearError(0, name);
   }
 
@@ -247,7 +450,6 @@ export default function IntakeForm() {
 
   function handleTabClick(tabIdx: number) {
     if (!items[tabIdx].active) {
-      // Activate: clone ALL editable fields from Tab 0
       setItems((prev) => ({
         ...prev,
         [tabIdx]: { ...prev[0], active: true },
@@ -293,13 +495,11 @@ export default function IntakeForm() {
       return;
     }
 
-    // Collect active tabs in order
     const activeTabs = Object.keys(items)
       .map(Number)
       .filter((i) => items[i].active)
       .sort((a, b) => a - b);
 
-    // Validate all active tabs
     const newErrors: Record<number, Record<string, string>> = {};
     const newWarnings: Record<number, Record<string, string>> = {};
 
@@ -323,7 +523,6 @@ export default function IntakeForm() {
       if (!result.valid) {
         for (const err of result.errors) {
           if (CONTACT_FIELDS.includes(err.field)) {
-            // Contact errors always go into Tab 0 (where they're editable)
             if (!newErrors[0]) newErrors[0] = {};
             newErrors[0][err.field] = err.message;
           } else {
@@ -355,10 +554,8 @@ export default function IntakeForm() {
 
     setStatus("submitting");
 
-    // Build payload outside try so it's accessible in catch for offline queuing
     let payload: Record<string, unknown>;
     if (activeTabs.length === 1) {
-      // Single-item flat payload — backward compatible
       const itemData = items[0];
       const quantityInt = itemData.quantity ? parseInt(itemData.quantity, 10) : NaN;
       payload = {
@@ -372,9 +569,11 @@ export default function IntakeForm() {
         upc: itemData.upc,
         no_upc: itemData.no_upc,
         seller_estimated_value: itemData.seller_estimated_value,
+        file_ids: doneFileIds,
+        session_id: sessionId,
+        session_item_number: sessionItemNumber,
       };
     } else {
-      // Multi-item payload
       payload = {
         ...contact,
         items: activeTabs.map((tabIdx) => {
@@ -389,8 +588,10 @@ export default function IntakeForm() {
             upc: d.upc,
             no_upc: d.no_upc,
             seller_estimated_value: d.seller_estimated_value,
+            file_ids: doneFileIds,
           };
         }),
+        session_id: sessionId,
       };
     }
 
@@ -421,7 +622,6 @@ export default function IntakeForm() {
       }
 
       if (!res.ok) {
-        // 503 means the service worker intercepted while offline — queue it
         if (res.status === 503) {
           await enqueue(payload);
           setBannerStatus("queued");
@@ -432,7 +632,6 @@ export default function IntakeForm() {
         }
 
         if (data.itemErrors) {
-          // Multi-item server errors — map item indices back to tab indices
           const serverErrors: Record<number, Record<string, string>> = {};
           for (const [itemIdxStr, errs] of Object.entries(
             data.itemErrors as Record<string, Record<string, string>>
@@ -463,9 +662,13 @@ export default function IntakeForm() {
         return;
       }
 
+      // Success — advance session item number
+      const nextItemNumber = sessionItemNumber + 1;
+      sessionStorage.setItem("tsb_session_item_number", String(nextItemNumber));
+      setSessionItemNumber(nextItemNumber);
+
       setStatus("success");
     } catch {
-      // Network failure — save to offline queue, reset form, show banner
       await enqueue(payload);
       setBannerStatus("queued");
       resetForm();
@@ -474,15 +677,44 @@ export default function IntakeForm() {
     }
   }
 
+  // ── Submit another item handler ──────────────────────────────────
+
+  function handleSubmitAnother() {
+    resetItemFields();
+    setStatus("idle");
+    // Keep uploadedFiles and contact — seller can reuse
+  }
+
+  function handleDone() {
+    resetForm();
+    setStatus("idle");
+  }
+
   // ── Success screen ─────────────────────────────────────────────
 
   if (status === "success") {
     return (
       <div className="py-12">
         <p className="text-brand-gold text-2xl font-bold mb-2">Received.</p>
-        <p className="text-brand-gray text-base">
+        <p className="text-brand-gray text-base mb-6">
           We&apos;ll be in touch within 2 business days.
         </p>
+        <div className="flex gap-4 flex-wrap">
+          <button
+            type="button"
+            onClick={handleSubmitAnother}
+            className="bg-brand-gold text-brand-bg font-bold px-8 py-3 rounded-lg text-base hover:bg-brand-gold/90 transition-colors"
+          >
+            Submit Another Item →
+          </button>
+          <button
+            type="button"
+            onClick={handleDone}
+            className="bg-brand-card text-brand-gray font-bold px-8 py-3 rounded-lg text-base hover:bg-brand-card/80 transition-colors border border-brand-card"
+          >
+            Done
+          </button>
+        </div>
       </div>
     );
   }
@@ -499,7 +731,6 @@ export default function IntakeForm() {
 
   const currentErrors = errors[activeTab] || {};
   const currentWarnings = warnings[activeTab] || {};
-  // Contact errors always live in errors[0]
   const contactErrors = errors[0] || {};
   const isLocked = activeTab > 0;
 
@@ -579,7 +810,6 @@ export default function IntakeForm() {
         <p className={sectionLabel}>Your Info</p>
 
         {isLocked ? (
-          // Readonly contact fields on Tabs 2–10
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -615,7 +845,6 @@ export default function IntakeForm() {
             </div>
           </div>
         ) : (
-          // Editable contact fields on Tab 1
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -808,6 +1037,98 @@ export default function IntakeForm() {
             className={fieldCls("description") + " resize-none"}
           />
           <FieldError name="description" />
+        </div>
+
+        {/* ── File Upload Zone ── */}
+        <div className="mt-4">
+          <label className={labelClass}>Product Photos &amp; Documents (Optional)</label>
+
+          {/* Drag-and-drop zone */}
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={() => fileInputRef.current?.click()}
+            className={[
+              "relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+              isDragOver
+                ? "border-brand-gold bg-brand-gold/10"
+                : "border-brand-card hover:border-brand-gold/50 bg-brand-input",
+            ].join(" ")}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,image/heic,application/pdf,.xlsx,.xls,text/csv"
+              onChange={handleFileInputChange}
+              className="hidden"
+              tabIndex={-1}
+            />
+            <div className="text-brand-gray/60 text-sm">
+              <span className="text-brand-gold font-semibold">Click to browse</span> or drag &amp; drop files here
+            </div>
+            <div className="text-brand-gray/40 text-xs mt-1">
+              JPEG, PNG, HEIC, PDF, Excel, CSV · Max 25 MB per file
+            </div>
+          </div>
+
+          {/* File list */}
+          {uploadedFiles.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {uploadedFiles.map((f) => (
+                <div
+                  key={f.file_id}
+                  className="flex items-center gap-3 bg-brand-input border border-brand-card rounded-lg px-3 py-2"
+                >
+                  {/* Thumbnail or icon */}
+                  {f.preview_url ? (
+                    <img
+                      src={f.preview_url}
+                      alt={f.file_name}
+                      className="w-10 h-10 object-cover rounded flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 flex items-center justify-center bg-brand-card rounded flex-shrink-0 text-brand-gray text-xs font-bold uppercase">
+                      {f.file_type.includes("pdf") ? "PDF" : f.file_type.includes("csv") ? "CSV" : "XLS"}
+                    </div>
+                  )}
+
+                  {/* File info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-brand-white text-sm font-medium truncate">{f.file_name}</div>
+                    <div className="text-brand-gray/60 text-xs">{formatBytes(f.file_size)}</div>
+                  </div>
+
+                  {/* Progress / status */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {f.progress === "done" && (
+                      <span className="text-green-400 text-sm">✓</span>
+                    )}
+                    {f.progress === "error" && (
+                      <span className="text-brand-error text-xs" title={f.error}>✕ Failed</span>
+                    )}
+                    {typeof f.progress === "number" && (
+                      <div className="w-16 h-1.5 bg-brand-card rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-brand-gold transition-all duration-200"
+                          style={{ width: `${f.progress}%` }}
+                        />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeFile(f.file_id); }}
+                      className="text-brand-gray/50 hover:text-brand-error text-sm ml-1"
+                      aria-label={`Remove ${f.file_name}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
