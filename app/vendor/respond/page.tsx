@@ -79,6 +79,9 @@ function VendorRespondPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
+  // Decline toggle
+  const [declined, setDeclined] = useState(false)
+
   // Form fields
   const [offerType, setOfferType] = useState('')
   const [quantityOffered, setQuantityOffered] = useState('')
@@ -103,7 +106,7 @@ function VendorRespondPage() {
       })()
     : 'Valid through: 72 hours from submission'
 
-  const isConsignment = offerType.startsWith('consignment')
+  const isConsignment = !declined && offerType.startsWith('consignment')
 
   // Auto-calc total from per unit × qty
   useEffect(() => {
@@ -167,9 +170,9 @@ function VendorRespondPage() {
     setSubmitError('')
 
     // Validation
-    if (!offerType) { setSubmitError('Please select an offer type.'); return }
-    if (!quantityOffered || parseInt(quantityOffered, 10) < 1) { setSubmitError('Please enter a valid quantity.'); return }
-    if (!notes.trim()) { setSubmitError('Please provide quote notes or a decline reason.'); return }
+    if (!declined && !offerType) { setSubmitError('Please select an offer type.'); return }
+    if (!declined && (!quantityOffered || parseInt(quantityOffered, 10) < 1)) { setSubmitError('Please enter a valid quantity.'); return }
+    if (!notes.trim()) { setSubmitError(declined ? 'A decline reason is required.' : 'Please provide quote notes or a decline reason.'); return }
 
     setSubmitting(true)
 
@@ -180,8 +183,8 @@ function VendorRespondPage() {
         body: JSON.stringify({
           deal_id: deal.deal_id,
           token: tokenParam,
-          offer_type: offerType,
-          quantity_offered: parseInt(quantityOffered, 10),
+          offer_type: declined ? 'declined' : offerType,
+          quantity_offered: declined ? 0 : parseInt(quantityOffered, 10),
           cash_offer_per_unit: cashPerUnit || undefined,
           cash_offer_total: cashTotal || undefined,
           consignment_return: consignmentReturn || undefined,
@@ -292,16 +295,45 @@ function VendorRespondPage() {
               <div className="section">
                 <div className="section-label">YOUR QUOTE</div>
 
+                {/* Decline / Quote Toggle */}
+                <div className="decline-toggle">
+                  <label className={`toggle-opt${!declined ? ' active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="response_type"
+                      checked={!declined}
+                      onChange={() => setDeclined(false)}
+                    />
+                    Submit Quote
+                  </label>
+                  <label className={`toggle-opt decline${declined ? ' active decline-active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="response_type"
+                      checked={declined}
+                      onChange={() => setDeclined(true)}
+                    />
+                    Decline to Quote
+                  </label>
+                </div>
+
+                {declined && (
+                  <div className="decline-notice">
+                    ◆ You are declining to quote on this item. All quote fields have been disabled. A reason is required below.
+                  </div>
+                )}
+
                 {submitError && (
                   <div className="error-banner">{submitError}</div>
                 )}
 
                 {/* Offer Type */}
-                <div className="form-row">
+                <div className={`form-row${declined ? ' field-disabled' : ''}`}>
                   <label className="form-label">Offer Type *</label>
                   <select
-                    className="form-control"
+                    className={`form-control${declined ? ' readonly' : ''}`}
                     value={offerType}
+                    disabled={declined}
                     onChange={(e) => setOfferType(e.target.value)}
                   >
                     {OFFER_TYPES.map((o) => (
@@ -313,14 +345,15 @@ function VendorRespondPage() {
                 </div>
 
                 {/* Quantity */}
-                <div className="form-row-grid">
+                <div className={`form-row-grid${declined ? ' field-disabled' : ''}`}>
                   <div className="form-row">
                     <label className="form-label">Quantity You Are Offering On *</label>
                     <input
                       type="number"
-                      className="form-control"
+                      className={`form-control${declined ? ' readonly' : ''}`}
                       value={quantityOffered}
-                      onChange={(e) => setQuantityOffered(e.target.value)}
+                      onChange={(e) => !declined && setQuantityOffered(e.target.value)}
+                      readOnly={declined}
                       min={0}
                       placeholder="e.g. 300"
                     />
@@ -337,15 +370,16 @@ function VendorRespondPage() {
                 </div>
 
                 {/* Cash Offers */}
-                <div className="form-row-grid">
+                <div className={`form-row-grid${declined ? ' field-disabled' : ''}`}>
                   <div className="form-row">
                     <label className="form-label">Cash Offer Per Unit</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control${declined ? ' readonly' : ''}`}
                       value={cashPerUnit}
-                      onChange={(e) => setCashPerUnit(e.target.value)}
-                      onBlur={() => cashPerUnit && setCashPerUnit(formatUSD(cashPerUnit))}
+                      onChange={(e) => !declined && setCashPerUnit(e.target.value)}
+                      onBlur={() => !declined && cashPerUnit && setCashPerUnit(formatUSD(cashPerUnit))}
+                      readOnly={declined}
                       placeholder="e.g. $4.75"
                     />
                   </div>
@@ -353,10 +387,11 @@ function VendorRespondPage() {
                     <label className="form-label">{isConsignment ? 'Total Inventory Value' : 'Cash Offer Total'}</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control${declined ? ' readonly' : ''}`}
                       value={cashTotal}
-                      onChange={(e) => setCashTotal(e.target.value)}
-                      onBlur={() => cashTotal && setCashTotal(formatUSD(cashTotal))}
+                      onChange={(e) => !declined && setCashTotal(e.target.value)}
+                      onBlur={() => !declined && cashTotal && setCashTotal(formatUSD(cashTotal))}
+                      readOnly={declined}
                       placeholder={isConsignment ? 'Gross auction estimate' : 'Auto-calculates or enter manually'}
                     />
                   </div>
@@ -378,13 +413,14 @@ function VendorRespondPage() {
                 )}
 
                 {/* Logistics */}
-                <div className="form-row-grid">
+                <div className={`form-row-grid${declined ? ' field-disabled' : ''}`}>
                   <div className="form-row">
                     <label className="form-label">Pickup / Logistics</label>
                     <select
-                      className="form-control"
+                      className={`form-control${declined ? ' readonly' : ''}`}
                       value={pickupLogistics}
-                      onChange={(e) => setPickupLogistics(e.target.value)}
+                      onChange={(e) => !declined && setPickupLogistics(e.target.value)}
+                      disabled={declined}
                     >
                       {PICKUP_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value} disabled={o.value === ''}>
@@ -397,21 +433,22 @@ function VendorRespondPage() {
                     <label className="form-label">Estimated Pickup / Close Date</label>
                     <input
                       type="date"
-                      className="form-control"
+                      className={`form-control${declined ? ' readonly' : ''}`}
                       value={pickupDate}
-                      onChange={(e) => setPickupDate(e.target.value)}
+                      onChange={(e) => !declined && setPickupDate(e.target.value)}
+                      readOnly={declined}
                     />
                   </div>
                 </div>
 
                 {/* Notes */}
                 <div className="form-row">
-                  <label className="form-label">Quote Notes / Decline Reason *</label>
+                  <label className="form-label">{declined ? 'Reason for Declining *' : 'Quote Notes / Decline Reason *'}</label>
                   <textarea
                     className="form-control"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Provide your offer details, conditions, contingencies, or reason for declining. This field is required."
+                    placeholder={declined ? 'Required: please explain why you are declining to quote on this item.' : 'Provide your offer details, conditions, contingencies, or reason for declining. This field is required.'}
                     rows={4}
                   />
                 </div>
@@ -451,11 +488,11 @@ function VendorRespondPage() {
               {/* Submit */}
               <div className="section submit-section">
                 <button
-                  className="submit-btn"
+                  className={`submit-btn${declined ? ' decline-btn' : ''}`}
                   onClick={handleSubmit}
                   disabled={submitting}
                 >
-                  {submitting ? '◆  SUBMITTING…' : '◆  SUBMIT QUOTE RESPONSE'}
+                  {submitting ? '◆  SUBMITTING…' : declined ? '◆  SUBMIT DECLINE' : '◆  SUBMIT QUOTE RESPONSE'}
                 </button>
                 <p className="submit-hint">
                   Your response will be submitted directly to The Stuff Buyers team for review.
@@ -889,6 +926,65 @@ const STYLES = `
     text-decoration: none;
   }
   .state-contact a:hover { text-decoration: underline; }
+
+  /* ── Decline Toggle ─────────────────────────── */
+
+  .decline-toggle {
+    display: flex;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+  }
+  .toggle-opt {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #666;
+    background: #111;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .toggle-opt + .toggle-opt { border-left: 1px solid #333; }
+  .toggle-opt input[type="radio"] {
+    accent-color: #C9A84C;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .toggle-opt.active { color: #C9A84C; background: #1a1600; }
+  .toggle-opt.decline-active { color: #cc4444; background: #1a0a0a; border-left-color: #662222; }
+  .toggle-opt.decline-active input[type="radio"] { accent-color: #cc4444; }
+
+  .decline-notice {
+    background: #1a0a0a;
+    border: 1px solid #662222;
+    border-left: 3px solid #cc4444;
+    color: #cc4444;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .field-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .submit-btn.decline-btn {
+    background: #662222;
+    border-bottom-color: #441111;
+    color: #ffaaaa;
+  }
+  .submit-btn.decline-btn:hover:not(:disabled) { background: #7a2828; }
 
   /* ── Mobile ──────────────────────────────────── */
 

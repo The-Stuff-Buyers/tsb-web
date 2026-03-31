@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
     vendor_company, vendor_contact, vendor_email, vendor_phone,
   } = body as Record<string, string>
 
+  const isDecline = offer_type === 'declined'
+
   // Required fields
-  if (!deal_id || !token || !offer_type || !quantity_offered || !notes) {
+  if (!deal_id || !token || !offer_type || (!isDecline && !quantity_offered) || !notes) {
     return NextResponse.json(
-      { error: 'Missing required fields: deal_id, token, offer_type, quantity_offered, notes.' },
+      { error: 'Missing required fields: deal_id, token, offer_type, notes.' },
       { status: 400 }
     )
   }
@@ -98,6 +100,58 @@ export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
 
   try {
+    // ── Decline path ──────────────────────────────────────────────────────────
+    if (isDecline) {
+      // Mark quote as declined
+      if (deal.latest_quote_id) {
+        await supabase.from('quotes').update({
+          status: 'declined',
+          received_at: new Date().toISOString(),
+          notes: notes || null,
+          raw_response: body,
+        } as never).eq('id', deal.latest_quote_id)
+      }
+
+      // Log event
+      await supabase.from('deal_events').insert({
+        deal_id: deal.id,
+        event_type: 'bidfta_declined',
+        actor: 'vendor_web_form',
+        metadata: { vendor_company: vendor_company || null, decline_reason: notes, source: 'web_form' },
+        from_stage: 'submitted_to_bidfta',
+        to_stage: 'closed_bidfta_declined',
+      } as never)
+
+      // Close the deal
+      await supabase.from('deals').update({
+        stage: 'closed_bidfta_declined',
+        closed_at: new Date().toISOString(),
+        close_reason: 'bidfta_declined',
+        bidfta_response_at: new Date().toISOString(),
+        decline_reason_collected: true,
+      } as never).eq('id', deal.id)
+
+      // Mark token used
+      await supabase.from('vendor_response_tokens').update({
+        used_at: new Date().toISOString(),
+        used_by_ip: ip,
+      } as never).eq('id', tokenRow.id)
+
+      // Notify Cyclops (best-effort)
+      if (CYCLOPS_WEBHOOK_SECRET) {
+        try {
+          await fetch(`${CYCLOPS_WEBHOOK_URL}/webhook/bidfta-response`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CYCLOPS_WEBHOOK_SECRET}` },
+            body: JSON.stringify({ deal_id, offer_type: 'declined', notes, vendor_company, vendor_contact, vendor_email, vendor_phone }),
+          })
+        } catch (e) { console.error('[vendor/respond] Cyclops webhook failed (decline):', e) }
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
+    // ── Quote path ────────────────────────────────────────────────────────────
     // 3. Update the pending quote row
     const mappedOfferType = resolveOfferType(offer_type)
 
