@@ -76,6 +76,7 @@ function VendorRespondPage() {
 
   // Decline toggle
   const [declined, setDeclined] = useState(false)
+  const [resubmissionNeeded, setResubmissionNeeded] = useState(false)
 
   // Form fields
   const [offerType, setOfferType] = useState('')
@@ -179,6 +180,7 @@ function VendorRespondPage() {
           deal_id: deal.deal_id,
           token: tokenParam,
           offer_type: declined ? 'declined' : offerType,
+          resubmission_needed: declined ? resubmissionNeeded : undefined,
           quantity_offered: declined ? 0 : parseInt(quantityOffered, 10),
           cash_offer_per_unit: cashPerUnit || undefined,
           cash_offer_total: cashTotal || undefined,
@@ -314,7 +316,15 @@ function VendorRespondPage() {
 
                 {declined && (
                   <div className="decline-notice">
-                    ◆ No quote will be submitted for this item. All quote fields have been disabled. A reason is required below.
+                    <div>◆ No quote will be submitted for this item. All quote fields have been disabled. A reason is required below.</div>
+                    <label className="resubmit-check">
+                      <input
+                        type="checkbox"
+                        checked={resubmissionNeeded}
+                        onChange={(e) => setResubmissionNeeded(e.target.checked)}
+                      />
+                      Include resubmission instructions — notify the seller with the notes below
+                    </label>
                   </div>
                 )}
 
@@ -443,7 +453,7 @@ function VendorRespondPage() {
                     className="form-control"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder={declined ? 'Required: please explain why you are declining to quote on this item.' : 'Provide your offer details, conditions, contingencies, or reason for declining. This field is required.'}
+                    placeholder={declined && resubmissionNeeded ? 'Required: describe what information or materials are needed to resubmit this item. This will be sent to the seller.' : declined ? 'Required: please explain why you are declining to quote on this item.' : 'Provide your offer details, conditions, contingencies, or reason for declining. This field is required.'}
                     rows={4}
                   />
                 </div>
@@ -967,6 +977,25 @@ const STYLES = `
     padding: 10px 14px;
     margin-bottom: 20px;
     text-transform: uppercase;
+  }
+  .resubmit-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffaaaa;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .resubmit-check input[type="checkbox"] {
+    accent-color: #cc4444;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    cursor: pointer;
   }
 
   .field-disabled {
