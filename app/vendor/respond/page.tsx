@@ -41,12 +41,8 @@ function formatUSD(value: string): string {
 
 const OFFER_TYPES = [
   { value: '', label: '— Select offer type —' },
-  { value: 'cash_purchase', label: 'Cash Purchase (outright buy)' },
-  { value: 'consignment_60_40', label: 'Consignment — 60/40 (seller gets 60%)' },
-  { value: 'consignment_70_30', label: 'Consignment — 70/30 (seller gets 70%)' },
-  { value: 'consignment_80_20', label: 'Consignment — 80/20 (seller gets 80%)' },
-  { value: 'net_30', label: 'Net 30' },
-  { value: 'net_60', label: 'Net 60' },
+  { value: 'cash_purchase', label: 'Cash Purchase' },
+  { value: 'consignment', label: 'Consignment' },
   { value: 'other', label: 'Other (specify in notes)' },
 ]
 
@@ -55,7 +51,6 @@ const PICKUP_OPTIONS = [
   { value: 'buyer_arranges', label: 'We Arrange & Pay Pickup' },
   { value: 'seller_delivers', label: 'Seller Delivers to Our Location' },
   { value: 'split', label: 'Split / Negotiable' },
-  { value: 'na', label: 'N/A — No Offer' },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -106,7 +101,7 @@ function VendorRespondPage() {
       })()
     : 'Valid through: 72 hours from submission'
 
-  const isConsignment = !declined && offerType.startsWith('consignment')
+  const isConsignment = !declined && offerType === 'consignment'
 
   // Auto-calc total from per unit × qty
   useEffect(() => {
@@ -313,13 +308,13 @@ function VendorRespondPage() {
                       checked={declined}
                       onChange={() => setDeclined(true)}
                     />
-                    Decline to Quote
+                    No Quote Provided
                   </label>
                 </div>
 
                 {declined && (
                   <div className="decline-notice">
-                    ◆ You are declining to quote on this item. All quote fields have been disabled. A reason is required below.
+                    ◆ No quote will be submitted for this item. All quote fields have been disabled. A reason is required below.
                   </div>
                 )}
 
@@ -492,7 +487,7 @@ function VendorRespondPage() {
                   onClick={handleSubmit}
                   disabled={submitting}
                 >
-                  {submitting ? '◆  SUBMITTING…' : declined ? '◆  SUBMIT DECLINE' : '◆  SUBMIT QUOTE RESPONSE'}
+                  {submitting ? '◆  SUBMITTING…' : declined ? '◆  SUBMIT — NO QUOTE' : '◆  SUBMIT QUOTE RESPONSE'}
                 </button>
                 <p className="submit-hint">
                   Your response will be submitted directly to The Stuff Buyers team for review.
