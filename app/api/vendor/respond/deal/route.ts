@@ -117,15 +117,18 @@ export async function GET(req: NextRequest) {
 
   const vendor = vendorInfo[tokenRow.vendor_name] || vendorInfo.bidfta
 
-  // Fetch deal attachments and generate 1-hour signed URLs
+  // Fetch deal attachments visible to this partner and generate 1-hour signed URLs.
+  // visible_to NULL = visible to all partners. Otherwise must include this vendor's name.
   // IMPORTANT: deal_attachments.file_url stores a Supabase Storage PATH, not a URL.
   // Always generate a signed URL before rendering — never use file_url directly.
+  const partnerName = tokenRow.vendor_name || 'bidfta'
   const { data: attachments } = await supabase
     .from('deal_attachments')
-    .select('id, file_name, file_type, file_size, file_url')
+    .select('id, file_name, file_type, file_size, file_url, visible_to')
     .eq('deal_id', deal.id)
+    .or(`visible_to.is.null,visible_to.cs.{${partnerName}}`)
     .order('created_at', { ascending: true }) as {
-      data: { id: string; file_name: string; file_type: string; file_size: number; file_url: string }[] | null
+      data: { id: string; file_name: string; file_type: string; file_size: number; file_url: string; visible_to: string[] | null }[] | null
     }
 
   const files = []
