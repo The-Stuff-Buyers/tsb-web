@@ -1,19 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-let supabaseClient: ReturnType<typeof createClient> | null = null
 function getSupabase() {
-  if (!supabaseClient) {
-    supabaseClient = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-  }
-  return supabaseClient
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
 
 const STORAGE_BUCKET = 'deal-attachments'
 
+// Note: STORAGE_BUCKET used below for signed URL generation
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const dealId = searchParams.get('deal')
