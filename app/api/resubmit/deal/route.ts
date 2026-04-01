@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const supabase = getSupabase()
 
   // Validate token
-  const { data: tokenRow } = await supabase
+  const { data: tokenRow, error: tokenErr } = await supabase
     .from('seller_resubmit_tokens')
     .select('id, deal_id, token, expires_at, used_at')
     .eq('token', token)
@@ -35,10 +35,15 @@ export async function GET(req: NextRequest) {
         expires_at: string
         used_at: string | null
       } | null
+      error: { message: string; code: string } | null
     }
 
-  if (!tokenRow) {
-    return NextResponse.json({ error: 'This link is invalid or has expired.' }, { status: 404 })
+  if (tokenErr || !tokenRow) {
+    return NextResponse.json({ 
+      error: 'This link is invalid or has expired.',
+      debug: tokenErr?.message || 'no row found',
+      debug_code: tokenErr?.code,
+    }, { status: 404 })
   }
 
   if (tokenRow.used_at) {
