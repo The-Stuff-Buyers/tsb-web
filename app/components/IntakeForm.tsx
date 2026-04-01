@@ -1042,6 +1042,9 @@ export default function IntakeForm() {
         {/* ── File Upload Zone ── */}
         <div className="mt-4">
           <label className={labelClass}>Product Photos &amp; Documents (Optional)</label>
+          <p className="text-brand-gray/60 text-xs mb-2">
+            Photos of the product, packaging, or spec sheets help us get you a faster, more accurate quote. Including images significantly reduces back-and-forth.
+          </p>
 
           {/* Drag-and-drop zone */}
           <div
@@ -1050,10 +1053,10 @@ export default function IntakeForm() {
             onDragLeave={handleDragLeave}
             onClick={() => fileInputRef.current?.click()}
             className={[
-              "relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+              "relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
               isDragOver
                 ? "border-brand-gold bg-brand-gold/10"
-                : "border-brand-card hover:border-brand-gold/50 bg-brand-input",
+                : "border-brand-gold/30 hover:border-brand-gold/70 bg-brand-input",
             ].join(" ")}
           >
             <input
@@ -1065,7 +1068,8 @@ export default function IntakeForm() {
               className="hidden"
               tabIndex={-1}
             />
-            <div className="text-brand-gray/60 text-sm">
+            <div className="text-4xl mb-2 opacity-40">📎</div>
+            <div className="text-brand-gray text-sm">
               <span className="text-brand-gold font-semibold">Click to browse</span> or drag &amp; drop files here
             </div>
             <div className="text-brand-gray/40 text-xs mt-1">
