@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   // Validate token
   const { data: tokenRow } = await supabase
     .from('seller_resubmit_tokens')
-    .select('id, deal_id, token, expires_at, used_at, bidfta_notes')
+    .select('id, deal_id, token, expires_at, used_at')
     .eq('token', token)
     .maybeSingle() as {
       data: {
@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
         token: string
         expires_at: string
         used_at: string | null
-        bidfta_notes: string | null
       } | null
     }
 
@@ -53,10 +52,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'token_expired', message: 'This resubmission link has expired.' }, { status: 410 })
   }
 
-  // Fetch deal
+  // Fetch deal with latest quote notes
   const { data: deal } = await supabase
     .from('deals')
-    .select('id, deal_id, item_name, condition, quantity, location_raw, stage')
+    .select('id, deal_id, item_name, condition, quantity, location_raw, stage, latest_quote_id')
     .eq('id', tokenRow.deal_id)
     .maybeSingle() as {
       data: {
@@ -67,6 +66,7 @@ export async function GET(req: NextRequest) {
         quantity: number
         location_raw: string | null
         stage: string
+        latest_quote_id: string | null
       } | null
     }
 
@@ -77,6 +77,17 @@ export async function GET(req: NextRequest) {
   // Verify the deal_id param matches
   if (deal.deal_id !== dealId) {
     return NextResponse.json({ error: 'This link is invalid or has expired.' }, { status: 404 })
+  }
+
+  // Fetch BidFTA notes from latest quote
+  let bidftaNotes = ''
+  if (deal.latest_quote_id) {
+    const { data: quote } = await supabase
+      .from('quotes')
+      .select('notes')
+      .eq('id', deal.latest_quote_id)
+      .maybeSingle() as { data: { notes: string | null } | null }
+    bidftaNotes = quote?.notes || ''
   }
 
   // Fetch existing deal attachments with signed URLs
@@ -114,7 +125,7 @@ export async function GET(req: NextRequest) {
     condition: deal.condition || 'N/A',
     quantity: deal.quantity,
     location: deal.location_raw || 'N/A',
-    bidfta_notes: tokenRow.bidfta_notes || '',
+    bidfta_notes: bidftaNotes,
     existing_files,
   })
 }
