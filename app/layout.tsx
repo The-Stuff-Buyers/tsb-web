@@ -3,7 +3,9 @@ import { Poppins } from "next/font/google";
 import { Organization, WebSite, WithContext } from "schema-dts";
 import "./globals.css";
 import { PWARegistration } from "./components/PWARegistration";
-import SiteChrome from "./components/SiteChrome";
+import HamburgerNav from "./components/HamburgerNav";
+import Footer from "./components/Footer";
+import { ConditionalShell } from "./components/ConditionalShell";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -208,7 +210,9 @@ export default function RootLayout({
       </head>
       <body className="font-poppins antialiased bg-brand-bg text-brand-gray">
         <PWARegistration />
-        <SiteChrome>{children}</SiteChrome>
+        <ConditionalShell nav={<HamburgerNav />} footer={<Footer />}>
+          {children}
+        </ConditionalShell>
       </body>
     </html>
   );
