@@ -40,21 +40,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Check if already used
-  if (tokenRow.used_at) {
-    return NextResponse.json(
-      { error: 'already_submitted', message: 'A quote has already been submitted for this deal.' },
-      { status: 410 }
-    )
-  }
-
-  // Check expiry
-  if (new Date(tokenRow.expires_at) < new Date()) {
-    return NextResponse.json(
-      { error: 'This link has expired. Please contact quotes@thestuffbuyers.com for a new link.' },
-      { status: 410 }
-    )
-  }
+  // Check expiry — for GET (viewing), we allow expired tokens but flag it in the response
+  const tokenExpired = new Date(tokenRow.expires_at) < new Date()
 
   // Fetch deal by deal_id string (not UUID)
   const { data: deal, error: dealErr } = await supabase
@@ -75,6 +62,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       { error: 'This link is invalid or has expired.' },
       { status: 404 }
+    )
+  }
+
+  // Check if a quote has already been submitted for this deal by this partner.
+  // Check deal state, not token.used_at — portal submissions don't use tokens.
+  const { data: existingQuote } = await supabase
+    .from('quotes')
+    .select('status')
+    .eq('deal_id', deal.id)
+    .eq('partner_name', tokenRow.vendor_name)
+    .not('status', 'eq', 'pending')
+    .limit(1)
+    .maybeSingle() as { data: { status: string } | null }
+
+  if (existingQuote) {
+    return NextResponse.json(
+      { error: 'already_submitted', message: 'A quote has already been submitted for this deal.' },
+      { status: 410 }
     )
   }
 
@@ -163,5 +168,6 @@ export async function GET(req: NextRequest) {
     submitted_at: deal.submitted_to_bidfta || deal.created_at,
     vendor,
     files,
+    token_expired: tokenExpired,
   })
 }
