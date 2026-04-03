@@ -542,7 +542,7 @@ export default function OpsDashboardPage() {
               <KanbanColumn title="OFFER OUT" count={inOffer.length} color="#22c55e" deals={inOffer} onAction={handleAction} partners={partners} />
             </div>
           ) : (
-            <TableView deals={filteredDeals} onAction={handleAction} partners={partners} />
+            <TableView deals={filteredDeals} onAction={handleAction} />
           )}
         </main>
 
@@ -579,7 +579,7 @@ function KanbanColumn({ title, count, color, deals, onAction, partners }: {
 
 // ── Table view ────────────────────────────────────────────────────────────────
 
-function TableView({ deals, onAction, partners }: { deals: DealCard[]; onAction: (a: string, d: string, extra?: Record<string, unknown>) => void; partners: { name: string; display_name: string }[] }) {
+function TableView({ deals, onAction }: { deals: DealCard[]; onAction: (a: string, d: string, extra?: Record<string, unknown>) => void }) {
   return (
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Barlow Condensed, sans-serif' }}>
