@@ -78,10 +78,10 @@ export async function GET(req: NextRequest) {
   const allRows = rows || []
 
   // Fetch category names for all deals
-  const categoryIds = [...new Set(allRows.map((r: Record<string, unknown>) => {
+  const categoryIds = Array.from(new Set(allRows.map((r: Record<string, unknown>) => {
     const d = r.deals as Record<string, unknown>
     return d?.category_id as string
-  }).filter(Boolean))]
+  }).filter(Boolean)))
 
   const categoryMap: Record<string, string> = {}
   if (categoryIds.length > 0) {

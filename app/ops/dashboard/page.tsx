@@ -494,10 +494,10 @@ export default function OpsDashboardPage() {
                         <button onClick={() => {
                           const notes = window.prompt('Info notes:') ?? ''
                           handleAction('provide_info', a.deal_id, { partner_name: a.partner_name, notes })
-                          setAlertsDismissed(s => new Set([...s, key]))
+                          setAlertsDismissed(s => new Set(Array.from(s).concat(key)))
                         }} style={smallBtnStyle('#eab308', '#111')}>PROVIDE INFO</button>
                       )}
-                      <button onClick={() => setAlertsDismissed(s => new Set([...s, key]))} style={smallBtnStyle('#222', '#555')}>✕</button>
+                      <button onClick={() => setAlertsDismissed(s => new Set(Array.from(s).concat(key)))} style={smallBtnStyle('#222', '#555')}>✕</button>
                     </div>
                   </div>
                 )

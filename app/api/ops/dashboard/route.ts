@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   const dealIds = allDeals.map(d => d.id as string)
 
   // ── Fetch category names ───────────────────────────────────────────────────
-  const catIds = [...new Set(allDeals.map(d => d.category_id as string).filter(Boolean))]
+  const catIds = Array.from(new Set(allDeals.map(d => d.category_id as string).filter(Boolean)))
   const categoryMap: Record<string, string> = {}
   if (catIds.length > 0) {
     const { data: cats } = await supabase.from('categories').select('id, display_name').in('id', catIds) as { data: { id: string; display_name: string }[] | null }
