@@ -174,8 +174,18 @@ export default function Home() {
       </a>
 
       {/* ── Hero ── */}
-      <section className="px-6 md:px-12 lg:px-24 pt-16 md:pt-20 pb-12 md:pb-16">
-        <div className="max-w-5xl">
+      <section
+        className="px-6 md:px-12 lg:px-24 pt-16 md:pt-20 pb-12 md:pb-16 relative overflow-hidden"
+        style={{
+          backgroundImage: 'url(/trade-show-booth.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center right',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        {/* Dark overlay so text stays readable */}
+        <div className="absolute inset-0 bg-brand-bg/85" />
+        <div className="max-w-5xl relative z-10">
           <h1
             className="font-black text-brand-gold leading-[0.85] tracking-[-0.04em]
                        text-[3.5rem] md:text-[5rem] lg:text-[8rem]"
