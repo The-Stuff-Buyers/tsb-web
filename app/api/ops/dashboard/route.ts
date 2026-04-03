@@ -33,6 +33,10 @@ export async function GET(req: NextRequest) {
   }
 
   const allDeals = deals || []
+  // DEBUG: surface query result count in response
+  if (allDeals.length === 0) {
+    return NextResponse.json({ _debug: 'deals_empty', session_ok: true, url: process.env.SUPABASE_URL?.slice(0,30) })
+  }
   const dealIds = allDeals.map(d => d.id as string)
 
   // ── Fetch category names ───────────────────────────────────────────────────
