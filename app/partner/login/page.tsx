@@ -28,72 +28,61 @@ export default function PartnerLoginPage() {
   }
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Partner Portal Login — The Stuff Buyers</title>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      </head>
-      <body>
-        <div className="page">
-          <div className="card">
-            <div className="card-header">
-              <div className="wordmark">THE STUFF BUYERS</div>
-              <div className="tagline">Partner Portal</div>
-            </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <div className="page">
+        <div className="card">
+          <div className="card-header">
+            <div className="wordmark">THE STUFF BUYERS</div>
+            <div className="tagline">Partner Portal</div>
+          </div>
 
-            {state === 'sent' ? (
-              <div className="success-state">
-                <div className="success-icon">◆</div>
-                <div className="success-heading">Check Your Email</div>
-                <div className="success-text">
-                  If <strong>{email}</strong> is registered, you&apos;ll receive a login link shortly.
-                  The link expires in 15 minutes.
-                </div>
-                <button className="back-btn" onClick={() => { setState('idle'); setEmail('') }}>
-                  Try another email
-                </button>
+          {state === 'sent' ? (
+            <div className="success-state">
+              <div className="success-icon">◆</div>
+              <div className="success-heading">Check Your Email</div>
+              <div className="success-text">
+                If <strong>{email}</strong> is registered, you&apos;ll receive a login link shortly.
+                The link expires in 15 minutes.
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="login-form">
-                <div className="form-label-row">
-                  <label className="form-label" htmlFor="email">Email Address</label>
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  className="form-input"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="todd.pewitt@bidfta.com"
-                  autoComplete="email"
-                  autoFocus
-                  disabled={state === 'loading'}
-                />
-                {error && <div className="error-msg">{error}</div>}
-                <button type="submit" className="submit-btn" disabled={state === 'loading'}>
-                  {state === 'loading' ? '◆  SENDING…' : '◆  SEND LOGIN LINK'}
-                </button>
-                <p className="hint">We&apos;ll email you a secure login link. No password required.</p>
-              </form>
-            )}
-
-            <div className="card-footer">
-              Questions? <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a>
+              <button className="back-btn" onClick={() => { setState('idle'); setEmail('') }}>
+                Try another email
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className="form-label-row">
+                <label className="form-label" htmlFor="email">Email Address</label>
+              </div>
+              <input
+                id="email"
+                type="email"
+                className="form-input"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="todd.pewitt@bidfta.com"
+                autoComplete="email"
+                autoFocus
+                disabled={state === 'loading'}
+              />
+              {error && <div className="error-msg">{error}</div>}
+              <button type="submit" className="submit-btn" disabled={state === 'loading'}>
+                {state === 'loading' ? '◆  SENDING…' : '◆  SEND LOGIN LINK'}
+              </button>
+              <p className="hint">We&apos;ll email you a secure login link. No password required.</p>
+            </form>
+          )}
+
+          <div className="card-footer">
+            Questions? <a href="mailto:quotes@thestuffbuyers.com">quotes@thestuffbuyers.com</a>
           </div>
         </div>
-      </body>
-    </html>
+      </div>
+    </>
   )
 }
 
 const STYLES = `
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0F0F0F; font-family: 'Barlow Condensed', sans-serif; color: #e8e8e8; min-height: 100vh; -webkit-font-smoothing: antialiased; }
   .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
   .card { width: 100%; max-width: 440px; background: #1a1a1a; border: 1px solid #333; }
   .card-header { background: #111; border-bottom: 3px solid #C9A84C; padding: 28px 40px 24px; }

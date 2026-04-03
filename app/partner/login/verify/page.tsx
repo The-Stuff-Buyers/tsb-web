@@ -25,7 +25,6 @@ function VerifyPageInner() {
         if (!res.ok) { setError(data.error || 'Login failed.'); setState('error'); return }
         setPartnerName(data.partner_name)
         setState('success')
-        // Redirect to dashboard
         const destination = next || `/partner/${encodeURIComponent(data.partner_name)}`
         setTimeout(() => { window.location.href = destination }, 800)
       })
@@ -33,45 +32,36 @@ function VerifyPageInner() {
   }, [token, next])
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Logging In — The Stuff Buyers Partner Portal</title>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      </head>
-      <body>
-        <div className="page">
-          <div className="card">
-            <div className="wordmark">THE STUFF BUYERS</div>
-            {state === 'loading' && (
-              <>
-                <div className="spinner">◆</div>
-                <div className="state-text">Verifying your login link…</div>
-              </>
-            )}
-            {state === 'success' && (
-              <>
-                <div className="success-icon">◆</div>
-                <div className="state-heading">Logged In</div>
-                <div className="state-text">Redirecting to your dashboard…</div>
-                <div className="partner-name">{partnerName}</div>
-              </>
-            )}
-            {state === 'error' && (
-              <>
-                <div className="error-icon">✕</div>
-                <div className="state-heading">Login Failed</div>
-                <div className="state-text">{error}</div>
-                <a href="/partner/login" className="retry-btn">◆ REQUEST NEW LINK</a>
-              </>
-            )}
-          </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <div className="page">
+        <div className="card">
+          <div className="wordmark">THE STUFF BUYERS</div>
+          {state === 'loading' && (
+            <>
+              <div className="spinner">◆</div>
+              <div className="state-text">Verifying your login link…</div>
+            </>
+          )}
+          {state === 'success' && (
+            <>
+              <div className="success-icon">◆</div>
+              <div className="state-heading">Logged In</div>
+              <div className="state-text">Redirecting to your dashboard…</div>
+              <div className="partner-name">{partnerName}</div>
+            </>
+          )}
+          {state === 'error' && (
+            <>
+              <div className="error-icon">✕</div>
+              <div className="state-heading">Login Failed</div>
+              <div className="state-text">{error}</div>
+              <a href="/partner/login" className="retry-btn">◆ REQUEST NEW LINK</a>
+            </>
+          )}
         </div>
-      </body>
-    </html>
+      </div>
+    </>
   )
 }
 
@@ -84,8 +74,6 @@ export default function VerifyPage() {
 }
 
 const STYLES = `
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0F0F0F; font-family: 'Barlow Condensed', sans-serif; color: #e8e8e8; min-height: 100vh; -webkit-font-smoothing: antialiased; }
   .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .card { text-align: center; padding: 64px 40px; max-width: 400px; width: 100%; }
   .wordmark { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: 0.04em; color: #C9A84C; text-transform: uppercase; margin-bottom: 32px; }

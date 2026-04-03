@@ -28,51 +28,40 @@ export default function OpsLoginPage() {
   }
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Ops Login — The Stuff Buyers</title>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      </head>
-      <body>
-        <div className="page">
-          <div className="card">
-            <div className="card-header">
-              <div className="wordmark">THE STUFF BUYERS</div>
-              <div className="tagline">Operations Dashboard</div>
-            </div>
-            <form onSubmit={handleSubmit} className="login-form">
-              <label className="form-label" htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                className="form-input"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                autoFocus
-                disabled={state === 'loading'}
-              />
-              {error && <div className="error-msg">{error}</div>}
-              <button type="submit" className="submit-btn" disabled={state === 'loading'}>
-                {state === 'loading' ? '◆  LOGGING IN…' : '◆  ACCESS DASHBOARD'}
-              </button>
-            </form>
-            <div className="card-footer">TSB Operations · Restricted Access</div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <div className="page">
+        <div className="card">
+          <div className="card-header">
+            <div className="wordmark">THE STUFF BUYERS</div>
+            <div className="tagline">Operations Dashboard</div>
           </div>
+          <form onSubmit={handleSubmit} className="login-form">
+            <label className="form-label" htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="form-input"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              autoFocus
+              disabled={state === 'loading'}
+            />
+            {error && <div className="error-msg">{error}</div>}
+            <button type="submit" className="submit-btn" disabled={state === 'loading'}>
+              {state === 'loading' ? '◆  LOGGING IN…' : '◆  ACCESS DASHBOARD'}
+            </button>
+          </form>
+          <div className="card-footer">TSB Operations · Restricted Access</div>
         </div>
-      </body>
-    </html>
+      </div>
+    </>
   )
 }
 
 const STYLES = `
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0F0F0F; font-family: 'Barlow Condensed', sans-serif; color: #e8e8e8; min-height: 100vh; -webkit-font-smoothing: antialiased; }
   .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
   .card { width: 100%; max-width: 400px; background: #1a1a1a; border: 1px solid #333; }
   .card-header { background: #111; border-bottom: 3px solid #C9A84C; padding: 28px 40px 24px; }
