@@ -397,17 +397,13 @@ export default function OpsDashboardPage() {
 
   if (loading) {
     return (
-      <html lang="en"><head><meta charSet="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Ops — TSB</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" /><style dangerouslySetInnerHTML={{ __html: BASE_STYLES }} /></head>
-        <body><div style={{ minHeight: '100vh', background: '#0F0F0F', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C9A84C', fontFamily: 'Space Mono, monospace', fontSize: 12, letterSpacing: '0.14em' }}>LOADING…</div></body>
-      </html>
+      <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center", color: "#C9A84C", fontFamily: "Space Mono, monospace", fontSize: 12, letterSpacing: "0.14em" }}>LOADING…</div>
     )
   }
 
   if (error) {
     return (
-      <html lang="en"><head><meta charSet="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Ops — TSB</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" /><style dangerouslySetInnerHTML={{ __html: BASE_STYLES }} /></head>
-        <body><div style={{ minHeight: '100vh', background: '#0F0F0F', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontFamily: 'Space Mono, monospace', fontSize: 12 }}>{error}</div></body>
-      </html>
+      <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center", color: "#ef4444", fontFamily: "Space Mono, monospace", fontSize: 12 }}>{error}</div>
     )
   }
 
@@ -432,16 +428,8 @@ export default function OpsDashboardPage() {
   const inOffer = byColumn('offer')
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Ops Dashboard — The Stuff Buyers</title>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: BASE_STYLES + PAGE_STYLES }} />
-      </head>
-      <body>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: PAGE_STYLES }} />
 
         {/* ── Header ── */}
         <header className="header">
@@ -546,8 +534,8 @@ export default function OpsDashboardPage() {
           )}
         </main>
 
-      </body>
-    </html>
+      
+    </>
   )
 }
 
@@ -669,10 +657,7 @@ function StatBadge({ label, value, color }: { label: string; value: number; colo
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const BASE_STYLES = `
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0F0F0F; font-family: 'Barlow Condensed', sans-serif; color: #e8e8e8; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-`
+// BASE_STYLES moved to app/ops/layout.tsx
 
 const PAGE_STYLES = `
   .header { position: sticky; top: 0; z-index: 100; background: #111; border-bottom: 2px solid #C9A84C; padding: 14px 20px; display: flex; align-items: center; gap: 20px; }

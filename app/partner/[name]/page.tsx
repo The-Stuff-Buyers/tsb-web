@@ -579,14 +579,12 @@ export default function PartnerDashboard() {
 
   if (loading) {
     return (
-      <html lang="en"><head><title>Partner Portal</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" /><style dangerouslySetInnerHTML={{ __html: BASE_STYLES }} /></head><body>
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F0F0F' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: 24, color: '#C9A84C', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>THE STUFF BUYERS</div>
-            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 9, color: '#555', letterSpacing: '0.14em' }}>Loading portal…</div>
-          </div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F0F0F' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: 24, color: '#C9A84C', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>THE STUFF BUYERS</div>
+          <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 9, color: '#555', letterSpacing: '0.14em' }}>Loading portal…</div>
         </div>
-      </body></html>
+      </div>
     )
   }
 
@@ -596,16 +594,8 @@ export default function PartnerDashboard() {
   const allDeals = [...sections.needs_response, ...sections.on_hold, ...sections.quoted, ...sections.accepted]
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{partner.display_name} — TSB Partner Portal</title>
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{ __html: BASE_STYLES }} />
-      </head>
-      <body>
+    <>
+
         {/* ── Sticky Header ── */}
         <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#111', borderBottom: '2px solid #C9A84C' }}>
           <div style={{ padding: '16px 24px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
@@ -714,8 +704,8 @@ export default function PartnerDashboard() {
         <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 24px', fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#333', letterSpacing: '0.1em', textAlign: 'center', textTransform: 'uppercase', marginTop: 24 }}>
           © 2026 The Stuff Buyers LLC · Partner Portal · questions@thestuffbuyers.com
         </div>
-      </body>
-    </html>
+      
+    </>
   )
 }
 
@@ -740,9 +730,4 @@ function Section({ label, accent, children }: { label: string; accent: string; c
   )
 }
 
-const BASE_STYLES = `
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0F0F0F; font-family: 'Barlow Condensed', sans-serif; color: #e8e8e8; min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; }
-  select, input, textarea { color-scheme: dark; }
-`
+// BASE_STYLES moved to app/partner/layout.tsx
