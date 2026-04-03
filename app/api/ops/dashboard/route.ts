@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   // ── Fetch all active deals ─────────────────────────────────────────────────
   const { data: deals } = await supabase
     .from('deals')
-    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, stage, assigned_to, created_at, submitted_to_bidfta, contact_name, company_name, email, phone, closed_at, close_reason, first_refusal_partner, first_refusal_expired_at')
+    .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, stage, assigned_to, created_at, submitted_to_bidfta, contact_name, company_name, submitted_email, phone, closed_at, close_reason, first_refusal_partner, first_refusal_expired_at')
     .not('stage', 'in', '("closed_won","closed_lost","closed_bidfta_declined","closed_all_partners_declined")')
     .order('created_at', { ascending: false })
     .limit(200) as { data: Record<string, unknown>[] | null }
@@ -238,7 +238,7 @@ export async function GET(req: NextRequest) {
       location: (deal.location_raw as string) || 'N/A',
       category: categoryMap[deal.category_id as string] || 'N/A',
       seller_name: deal.contact_name || null,
-      seller_email: deal.email || null,
+      seller_email: deal.submitted_email || null,
       seller_phone: deal.phone || null,
       seller_company: deal.company_name || null,
       stage,
