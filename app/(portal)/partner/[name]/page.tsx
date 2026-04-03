@@ -523,7 +523,8 @@ export default function PartnerDashboard() {
       const res = await fetch('/api/partner/deals')
       if (res.status === 401 && !hasRedirected.current) {
         hasRedirected.current = true
-        window.location.href = `/partner/login?next=${encodeURIComponent(window.location.pathname)}`
+        const pname = window.location.pathname.split('/')[2] || 'bidfta'
+        window.location.href = `/partner/login?partner=${pname}`
         return
       }
       if (!res.ok) { setLoading(false); return }
@@ -574,7 +575,8 @@ export default function PartnerDashboard() {
 
   const handleLogout = async () => {
     await fetch('/api/partner/logout', { method: 'POST' })
-    window.location.href = '/partner/login'
+    const pname = window.location.pathname.split('/')[2] || 'bidfta'
+    window.location.href = `/partner/login?partner=${pname}`
   }
 
   if (loading) {
