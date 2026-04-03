@@ -732,4 +732,4 @@ function Section({ label, accent, children }: { label: string; accent: string; c
   )
 }
 
-// BASE_STYLES moved to app/partner/layout.tsx
+// BASE_STYLES moved to app/(portal)/partner/layout.tsx — v2
