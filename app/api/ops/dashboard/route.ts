@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const { data: deals } = await supabase
     .from('deals')
     .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, stage, assigned_to, created_at, submitted_to_bidfta, contact_name, company_name, submitted_email, phone, closed_at, close_reason, first_refusal_partner, first_refusal_expired_at')
-    .not('stage', 'in', '("closed_won","closed_lost","closed_bidfta_declined","closed_all_partners_declined")')
+    .not('stage', 'in', '("closed_won","closed_expired","closed_declined","closed_withdrawn")')
     .order('created_at', { ascending: false })
     .limit(200) as { data: Record<string, unknown>[] | null }
 
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
   const { count: closedCount } = await supabase
     .from('deals')
     .select('id', { count: 'exact', head: true })
-    .in('stage', ['closed_won', 'closed_lost', 'closed_bidfta_declined', 'closed_all_partners_declined'])
+    .in('stage', ['closed_won', 'closed_expired', 'closed_declined', 'closed_withdrawn'])
     .gte('closed_at', oneWeekAgo) as { count: number | null }
   pipeline.closed_this_week = closedCount || 0
 
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
   const { count: totalClosedCount } = await supabase
     .from('deals')
     .select('id', { count: 'exact', head: true })
-    .in('stage', ['closed_won', 'closed_lost', 'closed_bidfta_declined', 'closed_all_partners_declined']) as { count: number | null }
+    .in('stage', ['closed_won', 'closed_expired', 'closed_declined', 'closed_withdrawn']) as { count: number | null }
 
   return NextResponse.json({
     pipeline,
