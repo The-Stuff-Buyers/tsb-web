@@ -532,8 +532,12 @@ export default function PartnerDashboard() {
   const [loading, setLoading] = useState(true)
   const [expandedDeal, setExpandedDeal] = useState<string | null>(null)
   const [closedDeals, setClosedDeals] = useState<Record<string, unknown>[] | null>(null)
-  const [showClosed, setShowClosed] = useState(false)
   const [loadingClosed, setLoadingClosed] = useState(false)
+  const [activeTab, setActiveTab] = useState<'needs_response' | 'on_hold' | 'quoted' | 'accepted' | 'closed'>('needs_response')
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab)
+    if (tab === 'closed' && !closedDeals && !loadingClosed) loadClosed()
+  }
   const hasRedirected = useRef(false)
 
   const fetchData = useCallback(async () => {
@@ -587,7 +591,6 @@ export default function PartnerDashboard() {
       setClosedDeals(d.closed || [])
     } finally {
       setLoadingClosed(false)
-      setShowClosed(true)
     }
   }
 
@@ -631,92 +634,78 @@ export default function PartnerDashboard() {
               Logout
             </button>
           </div>
-          <div style={{ padding: '8px 24px 10px', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <StatBadge count={counts.needs_response} label="Needs Response" color="#C9A84C" />
-            {counts.on_hold > 0 && <StatBadge count={counts.on_hold} label="On Hold" color="#eab308" />}
-            <StatBadge count={counts.quoted} label="Quoted" color="#888" />
-            {counts.accepted > 0 && <StatBadge count={counts.accepted} label="Accepted" color="#22c55e" />}
+          {/* Tab navigation */}
+          <div style={{ display: 'flex', borderTop: '1px solid #222', overflowX: 'auto' }}>
+            {([
+              { key: 'needs_response', label: 'Needs Response', count: counts.needs_response, color: '#C9A84C' },
+              { key: 'on_hold', label: 'On Hold', count: counts.on_hold, color: '#eab308' },
+              { key: 'quoted', label: 'Quoted', count: counts.quoted, color: '#888' },
+              { key: 'accepted', label: 'Accepted', count: counts.accepted, color: '#22c55e' },
+              { key: 'closed', label: 'Closed', count: sections.closed_count, color: '#444' },
+            ] as const).map(tab => (
+              <button key={tab.key} onClick={() => handleTabChange(tab.key)} style={{
+                flex: '0 0 auto', padding: '10px 20px', background: activeTab === tab.key ? '#1a1a1a' : 'transparent',
+                border: 'none', borderBottom: activeTab === tab.key ? `2px solid ${tab.color}` : '2px solid transparent',
+                color: activeTab === tab.key ? tab.color : '#555', cursor: 'pointer',
+                fontFamily: 'Space Mono, monospace', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase',
+                whiteSpace: 'nowrap', transition: 'all 0.15s',
+              }}>
+                {tab.label} {tab.count > 0 && <span style={{ marginLeft: 4, background: activeTab === tab.key ? tab.color : '#333', color: activeTab === tab.key ? '#111' : '#888', borderRadius: 2, padding: '1px 5px', fontSize: 8 }}>{tab.count}</span>}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* ── Main Content ── */}
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 20px' }}>
 
-          {allDeals.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '80px 40px', color: '#555' }}>
-              <div style={{ fontSize: 32, marginBottom: 16, color: '#C9A84C', fontWeight: 800 }}>◆</div>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 20, fontWeight: 700, color: '#e8e8e8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Welcome to the TSB Partner Portal</div>
-              <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: '#555', letterSpacing: '0.08em', lineHeight: 1.8 }}>Quote requests will appear here when submitted.</div>
-            </div>
+          {/* Tab content */}
+          {activeTab === 'needs_response' && (
+            sections.needs_response.length === 0
+              ? <EmptyTab message={allDeals.length === 0 ? 'Quote requests will appear here when submitted.' : '✓ All caught up — no open quote requests.'} />
+              : sections.needs_response.map(card => <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />)
+          )}
+          {activeTab === 'on_hold' && (
+            sections.on_hold.length === 0
+              ? <EmptyTab message="No deals currently on hold." />
+              : sections.on_hold.map(card => <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />)
+          )}
+          {activeTab === 'quoted' && (
+            sections.quoted.length === 0
+              ? <EmptyTab message="No deals currently awaiting decision." />
+              : sections.quoted.map(card => <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />)
+          )}
+          {activeTab === 'accepted' && (
+            sections.accepted.length === 0
+              ? <EmptyTab message="No accepted deals in progress." />
+              : sections.accepted.map(card => <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />)
           )}
 
-          {/* Needs Response */}
-          {sections.needs_response.length > 0 && (
-            <Section label={`Needs Your Response · ${sections.needs_response.length}`} accent="#C9A84C">
-              {sections.needs_response.map(card => (
-                <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />
-              ))}
-            </Section>
-          )}
-          {sections.needs_response.length === 0 && allDeals.length > 0 && (
-            <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', padding: '16px 20px', marginBottom: 24, color: '#555', fontFamily: 'Space Mono, monospace', fontSize: 9, letterSpacing: '0.1em' }}>
-              ✓ All caught up — no open quote requests.
-            </div>
-          )}
-
-          {/* On Hold */}
-          {sections.on_hold.length > 0 && (
-            <Section label={`On Hold — Awaiting Info · ${sections.on_hold.length}`} accent="#eab308">
-              {sections.on_hold.map(card => (
-                <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />
-              ))}
-            </Section>
-          )}
-
-          {/* Quoted */}
-          {sections.quoted.length > 0 && (
-            <Section label={`Quoted — Awaiting Decision · ${sections.quoted.length}`} accent="#555">
-              {sections.quoted.map(card => (
-                <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />
-              ))}
-            </Section>
-          )}
-
-          {/* Accepted */}
-          {sections.accepted.length > 0 && (
-            <Section label={`Accepted — In Progress · ${sections.accepted.length}`} accent="#22c55e">
-              {sections.accepted.map(card => (
-                <DealCardItem key={card.deal_id} card={card} isExpanded={expandedDeal === card.deal_id} onToggle={() => toggleExpanded(card.deal_id)} onRefresh={fetchData} />
-              ))}
-            </Section>
-          )}
-
-          {/* Closed */}
-          {sections.closed_count > 0 && (
-            <div style={{ marginTop: 24 }}>
-              {!showClosed ? (
-                <button onClick={loadClosed} disabled={loadingClosed} style={{ display: 'block', width: '100%', background: '#111', border: '1px solid #2a2a2a', color: '#555', fontFamily: 'Space Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px', cursor: 'pointer' }}>
-                  {loadingClosed ? 'Loading…' : `Show ${sections.closed_count} closed deals ▾`}
+          {/* Closed tab */}
+          {activeTab === 'closed' && (
+            loadingClosed ? <EmptyTab message="Loading closed deals…" /> :
+            !closedDeals ? (
+              <div style={{ paddingTop: 8 }}>
+                <button onClick={loadClosed} style={{ display: 'block', width: '100%', background: '#111', border: '1px solid #2a2a2a', color: '#555', fontFamily: 'Space Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px', cursor: 'pointer' }}>
+                  Load {sections.closed_count} closed deals
                 </button>
-              ) : (
-                <Section label={`Closed · ${closedDeals?.length || 0}`} accent="#333">
-                  {(closedDeals || []).map((c: Record<string, unknown>) => (
-                    <div key={c.deal_id as string} style={{ border: '1px solid #2a2a2a', borderLeft: '3px solid #333', background: '#1a1a1a', padding: '12px 20px', marginBottom: 6 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{c.item_name as string}</div>
-                          <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#444', marginTop: 3 }}>{c.deal_id as string} · {c.quantity as number} units · {c.location as string}</div>
-                        </div>
-                        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#444', letterSpacing: '0.1em', textAlign: 'right' }}>
-                          <div style={{ textTransform: 'uppercase' }}>{c.outcome_display as string}</div>
-                          <div style={{ marginTop: 2 }}>{timeAgo(c.closed_at as string)}</div>
-                        </div>
-                      </div>
+              </div>
+            ) : closedDeals.length === 0 ? <EmptyTab message="No closed deals." /> : (
+              (closedDeals || []).map((c: Record<string, unknown>) => (
+                <div key={c.deal_id as string} style={{ border: '1px solid #2a2a2a', borderLeft: '3px solid #333', background: '#1a1a1a', padding: '12px 20px', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{c.item_name as string}</div>
+                      <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#444', marginTop: 3 }}>{c.deal_id as string} · {(c.quantity as number) != null ? (c.quantity as number).toLocaleString() : '—'} units · {c.location as string}</div>
                     </div>
-                  ))}
-                </Section>
-              )}
-            </div>
+                    <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#444', letterSpacing: '0.1em', textAlign: 'right' }}>
+                      <div style={{ textTransform: 'uppercase' }}>{c.outcome_display as string}</div>
+                      <div style={{ marginTop: 2 }}>{timeAgo(c.closed_at as string)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
           )}
         </div>
 
@@ -729,25 +718,13 @@ export default function PartnerDashboard() {
   )
 }
 
-function StatBadge({ count, label, color }: { count: number; label: string; color: string }) {
+function EmptyTab({ message }: { message: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: 16, color, lineHeight: 1 }}>{count}</span>
-      <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#666', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#555', fontFamily: 'Space Mono, monospace', fontSize: 9, letterSpacing: '0.1em' }}>
+      {message}
     </div>
   )
 }
 
-function Section({ label, accent, children }: { label: string; accent: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${accent}33` }}>
-        <div style={{ width: 3, height: 14, background: accent, flexShrink: 0 }} />
-        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 9, color: accent, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
-      </div>
-      {children}
-    </div>
-  )
-}
 
 // BASE_STYLES moved to app/(portal)/partner/layout.tsx — v2
