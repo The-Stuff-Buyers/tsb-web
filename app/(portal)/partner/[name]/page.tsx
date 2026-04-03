@@ -341,12 +341,30 @@ function DealCardExpanded({ dealId, onActionSuccess }: { dealId: string; onActio
     <div style={{ marginTop: 16 }}>
       {successMsg && <div style={{ background: '#0d1f0d', border: '1px solid #2d4a2d', borderLeft: '3px solid #22c55e', color: '#4ade80', fontSize: 14, fontWeight: 600, padding: '10px 14px', marginBottom: 12 }}>{successMsg}</div>}
 
-      {detail.description && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#666', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>Description</div>
-          <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>{detail.description}</div>
+      {/* Deal Detail Header — same info as email form */}
+      <div style={{ background: '#0d0d0d', border: '1px solid #222', padding: '14px 16px', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#C9A84C', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>Deal Details</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: detail.description ? 10 : 0 }}>
+          {[  
+            ['Item', detail.item_name],
+            ['Condition', detail.condition],
+            ['Quantity', detail.quantity != null ? detail.quantity.toLocaleString() + ' units' : '—'],
+            ['Location', detail.location],
+            ['Category', detail.category],
+          ].map(([label, value]) => value && value !== 'N/A' ? (
+            <div key={String(label)}>
+              <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 7, color: '#555', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 2 }}>{label}</div>
+              <div style={{ fontSize: 13, color: '#e8e8e8', fontWeight: 600 }}>{value}</div>
+            </div>
+          ) : null)}
         </div>
-      )}
+        {detail.description && (
+          <div style={{ borderTop: '1px solid #1e1e1e', paddingTop: 10, marginTop: 4 }}>
+            <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 7, color: '#555', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 }}>Description</div>
+            <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{detail.description}</div>
+          </div>
+        )}
+      </div>
 
       {detail.info_request && !detail.info_provided && (
         <div style={{ background: '#1a1200', border: '1px solid #4a3a00', borderLeft: '3px solid #eab308', padding: '12px 14px', marginBottom: 16 }}>
