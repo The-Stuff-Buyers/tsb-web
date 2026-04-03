@@ -20,12 +20,17 @@ export async function GET(req: NextRequest) {
   const supabase = getSupabase()
 
   // ── Fetch all active deals ─────────────────────────────────────────────────
-  const { data: deals } = await supabase
+  const { data: deals, error: dealsError } = await supabase
     .from('deals')
     .select('id, deal_id, item_name, condition, quantity, location_raw, category_id, stage, assigned_to, created_at, submitted_to_bidfta, contact_name, company_name, submitted_email, phone, closed_at, close_reason, first_refusal_partner, first_refusal_expired_at')
     .not('stage', 'in', '("closed_won","closed_expired","closed_declined","closed_withdrawn")')
     .order('created_at', { ascending: false })
-    .limit(200) as { data: Record<string, unknown>[] | null }
+    .limit(200) as { data: Record<string, unknown>[] | null; error: unknown }
+
+  if (dealsError) {
+    console.error('[ops/dashboard] deals query error:', JSON.stringify(dealsError))
+    return NextResponse.json({ error: 'db_error', detail: dealsError }, { status: 500 })
+  }
 
   const allDeals = deals || []
   const dealIds = allDeals.map(d => d.id as string)
