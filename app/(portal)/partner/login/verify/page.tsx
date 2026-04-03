@@ -25,7 +25,7 @@ function VerifyPageInner() {
         if (!res.ok) { setError(data.error || 'Login failed.'); setState('error'); return }
         setPartnerName(data.partner_name)
         setState('success')
-        const destination = next || `/partner/${encodeURIComponent(data.partner_name)}`
+        const destination = next || '/partner/dashboard'
         setTimeout(() => { window.location.href = destination }, 800)
       })
       .catch(() => { setError('Network error. Please try again.'); setState('error') })
