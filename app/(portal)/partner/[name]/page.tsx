@@ -387,7 +387,7 @@ function DealCardExpanded({ dealId, onActionSuccess }: { dealId: string; onActio
         <div style={{ background: '#111', border: '1px solid #2a2a2a', borderLeft: '3px solid #555', padding: '14px 16px', marginBottom: 16 }}>
           <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 8, color: '#888', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>Your Quote</div>
           <div style={{ fontSize: 14, color: '#e8e8e8', fontWeight: 600 }}>{(detail.quote_summary as Record<string, string>).offer_type || (detail.quote_summary as Record<string, string>).payment_structure_display}</div>
-          {(detail.quote_summary as Record<string, unknown>).cash_offer_total ? <div style={{ fontSize: 13, color: '#C9A84C' }}>${Number((detail.quote_summary as Record<string, unknown>).cash_offer_total).toLocaleString()}</div> : null}
+          {(detail.quote_summary as Record<string, unknown>).cash_offer_total != null ? <div style={{ fontSize: 13, color: '#C9A84C' }}>${Number((detail.quote_summary as Record<string, unknown>).cash_offer_total).toLocaleString()}</div> : null}
           {(detail.quote_summary as Record<string, unknown>).consignment_return ? <div style={{ fontSize: 13, color: '#C9A84C' }}>Est. {formatUSD(String((detail.quote_summary as Record<string, unknown>).consignment_return))}</div> : null}
           {(detail.quote_summary as Record<string, unknown>).notes ? <div style={{ fontSize: 12, color: '#888', marginTop: 6, lineHeight: 1.5 }}>{String((detail.quote_summary as Record<string, unknown>).notes)}</div> : null}
         </div>
@@ -465,7 +465,7 @@ function DealCardItem({ card, isExpanded, onToggle, onRefresh }: { card: DealCar
               {card.is_resubmission && <span style={{ marginLeft: 8, background: '#2a1515', border: '1px solid #662222', color: '#cc6666', fontSize: 9, fontFamily: 'Space Mono, monospace', padding: '2px 6px', letterSpacing: '0.1em' }}>RESUBMISSION</span>}
             </div>
             <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 9, color: '#666', letterSpacing: '0.08em' }}>
-              {card.quantity.toLocaleString()} units · {card.location} · {card.condition}
+              {card.quantity != null ? card.quantity.toLocaleString() : '—'} units · {card.location} · {card.condition}
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
@@ -484,7 +484,7 @@ function DealCardItem({ card, isExpanded, onToggle, onRefresh }: { card: DealCar
         {card.quote_snapshot && (
           <div style={{ marginTop: 8, display: 'flex', gap: 16, alignItems: 'center' }}>
             <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 9, color: '#888' }}>{card.quote_snapshot.offer_type_display}</div>
-            {card.quote_snapshot.cash_offer_total && <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: '#C9A84C' }}>${Number(card.quote_snapshot.cash_offer_total).toLocaleString()}</div>}
+            {card.quote_snapshot.cash_offer_total != null && <div style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: '#C9A84C' }}>${Number(card.quote_snapshot.cash_offer_total).toLocaleString()}</div>}
             {card.can_revise && <div style={{ background: '#1a1600', border: '1px solid #4a3a00', color: '#C9A84C', fontFamily: 'Space Mono, monospace', fontSize: 8, padding: '3px 8px', letterSpacing: '0.1em' }}>◆ REVISE OFFER</div>}
           </div>
         )}
