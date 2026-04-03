@@ -175,7 +175,7 @@ export default function Home() {
 
       {/* ── Hero ── */}
       <section
-        className="px-6 md:px-12 lg:px-24 pt-16 md:pt-20 pb-12 md:pb-16 relative overflow-hidden"
+        className="px-6 md:px-12 lg:px-24 pt-16 md:pt-20 pb-12 md:pb-16 relative"
         style={{
           backgroundImage: 'url(/trade-show-booth.jpg)',
           backgroundSize: 'cover',
